@@ -1,0 +1,15 @@
+# Secrets and device keys
+tinytuya.json
+devices.json
+config.json
+*.key
+
+# Python
+.venv/
+__pycache__/
+
+# Swift / macOS
+.build/
+build/
+.swiftpm/
+.DS_Store
