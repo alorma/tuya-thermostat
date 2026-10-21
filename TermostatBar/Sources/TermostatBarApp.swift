@@ -8,14 +8,24 @@ struct TermostatBarApp: App {
         MenuBarExtra {
             PanelView(model: model)
         } label: {
+            BarLabel(model: model)
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
+
+struct BarLabel: View {
+    @ObservedObject var model: ThermostatModel
+
+    var body: some View {
+        HStack(spacing: 2) {
             Image(systemName: model.error != nil
                 ? "exclamationmark.triangle.fill"
-                : (model.isOn ? "thermometer.medium" : "thermometer.medium.slash"))
+                : (!model.isOn ? "thermometer.medium.slash" : (model.isHeating ? "flame.fill" : "thermometer.medium")))
             if let current = model.current {
                 Text(String(format: "%.1f°", current))
             }
         }
-        .menuBarExtraStyle(.window)
     }
 }
 
@@ -36,6 +46,11 @@ struct PanelView: View {
                 Text(model.current.map { String(format: "%.1f°C", $0) } ?? "--")
                     .font(.system(size: 40, weight: .semibold, design: .rounded))
                 Text("temperatura actual").font(.caption).foregroundStyle(.secondary)
+                if model.isOn {
+                    Label(model.isHeating ? "Escalfant" : "En repòs", systemImage: model.isHeating ? "flame.fill" : "pause.circle")
+                        .font(.caption)
+                        .foregroundStyle(model.isHeating ? .orange : .secondary)
+                }
             }
 
             HStack(spacing: 18) {
@@ -50,6 +65,21 @@ struct PanelView: View {
             .buttonStyle(.plain)
             .font(.title)
             .disabled(!model.isOn)
+
+            HStack(spacing: 8) {
+                ForEach([20.0, 21.0, 23.0], id: \.self) { value in
+                    Button("\(Int(value))°") { model.setTarget(value) }
+                        .buttonStyle(.bordered)
+                        .tint(model.target == value ? .accentColor : nil)
+                }
+            }
+            .disabled(!model.isOn)
+
+            Toggle("Pausa (encès, sense escalfar)", isOn: Binding(get: { model.isPaused }, set: model.setPaused))
+                .font(.caption)
+                .toggleStyle(.checkbox)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .disabled(!model.isOn)
 
             if let error = model.error {
                 VStack(alignment: .leading, spacing: 6) {

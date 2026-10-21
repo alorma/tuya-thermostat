@@ -6,6 +6,9 @@ final class ThermostatModel: ObservableObject {
     @Published var help: String?
     @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
     @Published var isOn = false
+    @Published var isHeating = false
+    @Published var resumeTarget: Double? = UserDefaults.standard.object(forKey: "resumeTarget") as? Double
+    private var pauseTarget: Double? = UserDefaults.standard.object(forKey: "pauseTarget") as? Double
     @Published var current: Double?
     @Published var target = 20.0
     @Published var minTarget = 5.0
@@ -16,6 +19,9 @@ final class ThermostatModel: ObservableObject {
 
     private var client: TuyaClient?
     private var pendingTarget: Task<Void, Never>?
+
+    private let activity = ProcessInfo.processInfo.beginActivity(
+        options: .userInitiatedAllowingIdleSystemSleep, reason: "Refresc periòdic del termòstat")
 
     init() {
         if !UserDefaults.standard.bool(forKey: "didRegisterLaunchAtLogin") {
@@ -31,7 +37,7 @@ final class ThermostatModel: ObservableObject {
         Task { [weak self] in
             while !Task.isCancelled {
                 await self?.refresh()
-                try? await Task.sleep(for: .seconds(120))
+                try? await Task.sleep(for: .seconds(60))
             }
         }
     }
@@ -43,11 +49,15 @@ final class ThermostatModel: ObservableObject {
         do {
             let status = try await client.status()
             isOn = status.isOn
+            isHeating = status.isHeating
             current = status.current
             minTarget = status.minTarget
             maxTarget = status.maxTarget
             battery = status.battery
-            if pendingTarget == nil, let remote = status.target { target = remote }
+            if pendingTarget == nil, let remote = status.target {
+                target = remote
+                if resumeTarget != nil, remote != pauseTarget { storePause(resume: nil, pause: nil) }
+            }
             clearError()
         } catch {
             report(error)
@@ -81,6 +91,7 @@ final class ThermostatModel: ObservableObject {
     func setPower(_ on: Bool) {
         let previous = isOn
         isOn = on
+        if !on { isHeating = false }
         Task {
             do {
                 try await client?.send(code: "switch", value: on)
@@ -92,12 +103,46 @@ final class ThermostatModel: ObservableObject {
         }
     }
 
+    var isPaused: Bool { resumeTarget != nil }
+
+    private func storePause(resume: Double?, pause: Double?) {
+        resumeTarget = resume
+        pauseTarget = pause
+        UserDefaults.standard.set(resume, forKey: "resumeTarget")
+        UserDefaults.standard.set(pause, forKey: "pauseTarget")
+    }
+
+    /// Manté el termòstat encès però sense escalfar: baixa la consigna per sota de l'actual.
+    func setPaused(_ paused: Bool) {
+        if paused {
+            guard let current else { return }
+            let low = max(minTarget, ((current - 1) * 2).rounded(.down) / 2)
+            storePause(resume: target, pause: low)
+            target = low
+        } else if let resume = resumeTarget {
+            storePause(resume: nil, pause: nil)
+            target = resume
+        }
+        sendTarget()
+    }
+
+    func setTarget(_ value: Double) {
+        storePause(resume: nil, pause: nil)
+        target = min(maxTarget, max(minTarget, value))
+        sendTarget()
+    }
+
     func adjustTarget(by delta: Double) {
+        storePause(resume: nil, pause: nil)
         target = min(maxTarget, max(minTarget, target + delta))
+        sendTarget(after: .milliseconds(800))
+    }
+
+    private func sendTarget(after delay: Duration = .zero) {
         pendingTarget?.cancel()
         let value = Int((target * 10).rounded())
         pendingTarget = Task {
-            try? await Task.sleep(for: .milliseconds(800))
+            try? await Task.sleep(for: delay)
             guard !Task.isCancelled else { return }
             do {
                 try await client?.send(code: "temp_set", value: value)

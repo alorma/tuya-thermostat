@@ -64,6 +64,7 @@ struct ThermostatStatus {
     var minTarget = 5.0
     var maxTarget = 35.0
     var battery: Int?
+    var isHeating = false
 }
 
 actor TuyaClient {
@@ -92,7 +93,17 @@ actor TuyaClient {
         result.minTarget = degrees("lower_temp") ?? 5
         result.maxTarget = degrees("upper_temp") ?? 35
         result.battery = values["battery_percentage"] as? Int
+        if result.isOn, let state = try? await workState() {
+            result.isHeating = state != "stop"
+        }
         return result
+    }
+
+    // work_state només surt a l'endpoint de propietats, no a /status
+    private func workState() async throws -> String? {
+        let json = try await request("GET", "/v2.0/cloud/thing/\(config.deviceId)/shadow/properties?codes=work_state")
+        let properties = (json["result"] as? [String: Any])?["properties"] as? [[String: Any]]
+        return properties?.first { $0["code"] as? String == "work_state" }?["value"] as? String
     }
 
     func send(code: String, value: Any) async throws {
