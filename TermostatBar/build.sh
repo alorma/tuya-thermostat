@@ -28,3 +28,11 @@ PLIST
 
 codesign --force --sign - "$APP"
 echo "Built $APP"
+
+# Login items need a stable location, so install to ~/Applications
+INSTALL_DIR="$HOME/Applications"
+mkdir -p "$INSTALL_DIR"
+pkill -x TermostatBar || true
+rm -rf "$INSTALL_DIR/TermostatBar.app"
+cp -R "$APP" "$INSTALL_DIR/TermostatBar.app"
+echo "Installed $INSTALL_DIR/TermostatBar.app"

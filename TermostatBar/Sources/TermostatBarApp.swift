@@ -8,7 +8,9 @@ struct TermostatBarApp: App {
         MenuBarExtra {
             PanelView(model: model)
         } label: {
-            Image(systemName: model.isOn ? "thermometer.medium" : "thermometer.medium.slash")
+            Image(systemName: model.error != nil
+                ? "exclamationmark.triangle.fill"
+                : (model.isOn ? "thermometer.medium" : "thermometer.medium.slash"))
             if let current = model.current {
                 Text(String(format: "%.1f°", current))
             }
@@ -50,10 +52,23 @@ struct PanelView: View {
             .disabled(!model.isOn)
 
             if let error = model.error {
-                Text(error).font(.caption).foregroundStyle(.red).multilineTextAlignment(.center)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(error).font(.caption.bold()).foregroundStyle(.red)
+                    if let help = model.help {
+                        Text(help).font(.caption).foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("Obrir iot.tuya.com") { NSWorkspace.shared.open(TuyaError.consoleURL) }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
 
             Divider()
+
+            Toggle("Iniciar en arrencar", isOn: Binding(get: { model.launchAtLogin }, set: model.setLaunchAtLogin))
+                .font(.caption)
+                .toggleStyle(.checkbox)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             HStack {
                 if let battery = model.battery {
@@ -67,7 +82,7 @@ struct PanelView: View {
             .buttonStyle(.borderless)
         }
         .padding(16)
-        .frame(width: 240)
+        .frame(width: 280)
         .task { await model.refresh() }
     }
 }

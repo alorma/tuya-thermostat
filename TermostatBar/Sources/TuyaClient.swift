@@ -18,13 +18,41 @@ struct Config: Codable {
 }
 
 enum TuyaError: LocalizedError {
+    case subscriptionExpired
+    case notAuthorized
+    case invalidCredentials
     case api(String)
     case malformed
 
+    static let consoleURL = URL(string: "https://iot.tuya.com")!
+
+    static func from(code: Int, message: String) -> TuyaError {
+        if code == 28841002 || message.lowercased().contains("expire") { return .subscriptionExpired }
+        if [1106, 28841001, 28841105].contains(code) { return .notAuthorized }
+        if [1001, 1002, 1004].contains(code) { return .invalidCredentials }
+        return .api("Tuya (\(code)): \(message)")
+    }
+
     var errorDescription: String? {
         switch self {
+        case .subscriptionExpired: return "La subscripció d'IoT Core de Tuya ha caducat"
+        case .notAuthorized: return "Tuya no et deixa accedir al termòstat"
+        case .invalidCredentials: return "Les credencials de Tuya no són vàlides"
         case .api(let message): return message
         case .malformed: return "Resposta inesperada de Tuya"
+        }
+    }
+
+    var instructions: String? {
+        switch self {
+        case .subscriptionExpired:
+            return "1. Entra a iot.tuya.com\n2. Cloud → Development → el teu projecte → Service API\n3. A IoT Core, renova o amplia el període de prova (és gratuït)\n4. Torna aquí i prem refrescar"
+        case .notAuthorized:
+            return "1. Entra a iot.tuya.com → el teu projecte → Devices\n2. Comprova que el compte de l'app Tuya Smart segueix vinculat (Link App Account); si no, escaneja el QR de nou\n3. A Service API, comprova que IoT Core i Authorization Token Management estan actius"
+        case .invalidCredentials:
+            return "Copia de nou l'Access ID i l'Access Secret des de iot.tuya.com → el teu projecte → Overview a ~/Library/Application Support/TermostatBar/config.json i reinicia l'app."
+        default:
+            return nil
         }
     }
 }
@@ -112,8 +140,10 @@ actor TuyaClient {
             throw TuyaError.malformed
         }
         if json["success"] as? Bool != true {
+            let code = json["code"] as? Int ?? 0
             let message = json["msg"] as? String ?? "Error desconegut"
-            throw TuyaError.api("Tuya: \(message)")
+            if code == 1010 { token = nil }
+            throw TuyaError.from(code: code, message: message)
         }
         return json
     }

@@ -1,7 +1,10 @@
 import Foundation
+import ServiceManagement
 
 @MainActor
 final class ThermostatModel: ObservableObject {
+    @Published var help: String?
+    @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
     @Published var isOn = false
     @Published var current: Double?
     @Published var target = 20.0
@@ -15,6 +18,10 @@ final class ThermostatModel: ObservableObject {
     private var pendingTarget: Task<Void, Never>?
 
     init() {
+        if !UserDefaults.standard.bool(forKey: "didRegisterLaunchAtLogin") {
+            UserDefaults.standard.set(true, forKey: "didRegisterLaunchAtLogin")
+            setLaunchAtLogin(true)
+        }
         do {
             client = TuyaClient(config: try Config.load())
         } catch {
@@ -41,9 +48,33 @@ final class ThermostatModel: ObservableObject {
             maxTarget = status.maxTarget
             battery = status.battery
             if pendingTarget == nil, let remote = status.target { target = remote }
-            error = nil
+            clearError()
         } catch {
-            self.error = error.localizedDescription
+            report(error)
+        }
+    }
+
+    func setLaunchAtLogin(_ on: Bool) {
+        do {
+            if on { try SMAppService.mainApp.register() } else { try SMAppService.mainApp.unregister() }
+        } catch {
+            report(error)
+        }
+        launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    private func clearError() {
+        error = nil
+        help = nil
+    }
+
+    private func report(_ failure: Error) {
+        if failure is URLError {
+            error = "Sense connexió a internet"
+            help = nil
+        } else {
+            error = failure.localizedDescription
+            help = (failure as? TuyaError)?.instructions
         }
     }
 
@@ -53,10 +84,10 @@ final class ThermostatModel: ObservableObject {
         Task {
             do {
                 try await client?.send(code: "switch", value: on)
-                error = nil
+                clearError()
             } catch {
                 isOn = previous
-                self.error = error.localizedDescription
+                report(error)
             }
         }
     }
@@ -70,9 +101,9 @@ final class ThermostatModel: ObservableObject {
             guard !Task.isCancelled else { return }
             do {
                 try await client?.send(code: "temp_set", value: value)
-                error = nil
+                clearError()
             } catch {
-                self.error = error.localizedDescription
+                report(error)
             }
             pendingTarget = nil
         }
