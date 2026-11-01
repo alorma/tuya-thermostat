@@ -8,7 +8,7 @@ Personal tooling for one Tuya Wi-Fi thermostat (R11, category `wk`, device id `b
 
 - Root = shared across platforms: Python Tuya tooling (`list_devices.py`), `.venv`, and the cloud credentials.
 - `macOS/` = SwiftUI menu bar app (`TermostatBar`), a Swift package with no Xcode project.
-- `android/` = Android app **Caliu** (`com.alorma.caliu`), a standalone Gradle project (Kotlin, Jetpack Compose, Material 3 Expressive from `material3` 1.5 beta). Modules: `:app` and `:designsystem` (theme `CaliuTheme`; the only place for `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`). It follows the conventions of the sibling projects `../converses` and `../caducity`: version catalog in `gradle/libs.versions.toml`, ktlint with rules in `.editorconfig`, UI strings in `strings.xml` (English default, `values-ca`, `values-es`). It is still a vanilla skeleton waiting for the design.
+- `android/` = Android app **Caliu** (`com.alorma.caliu`), a standalone Gradle project (Kotlin, Jetpack Compose, Material 3 Expressive from `material3` 1.5 beta). Modules: `:app` and `:designsystem` (theme `CaliuTheme`; the only place for `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`). It follows the conventions of the sibling projects `../converses` and `../caducity`: version catalog in `gradle/libs.versions.toml`, ktlint with rules in `.editorconfig`, UI strings in `strings.xml` (English default, `values-ca`, `values-es`). The work plan lives in `android/docs/` (`README.md` with scope, decisions and handoff-vs-device differences; `fases.md` with the phases), and the Claude Design handoff (spec, colors, type, strings, captures) is in `android/docs/disseny/`, which is the design source of truth and is not edited.
 
 ## Commands
 
