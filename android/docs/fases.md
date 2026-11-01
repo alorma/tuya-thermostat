@@ -172,3 +172,7 @@ Es concretarà més endavant.
 - ☐ Keystore de release fora del repo, amb els secrets al CI.
 - ☐ Un workflow manual que construeix la release i la puja a App Distribution.
 - ☐ Afegir `testDebugUnitTest` i la validació de captures al CI quan hi hagi tests.
+
+## Pendent: refresc més freqüent
+
+L'app de Tuya rep els canvis en temps real (MQTT/Pulsar del núvol), però el nostre projecte d'OpenAPI no ho té a l'abast d'una app. En lloc d'això, mentre l'app sigui en primer pla, consultarà l'estat cada pocs segons (ara és cada 60 s, `HomeViewModel.REFRESH_INTERVAL`) per veure els canvis fets des de fora (botons físics, Smart Life). Cal vigilar la quota de crides de l'OpenAPI abans de triar l'interval.
