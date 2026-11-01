@@ -1,5 +1,5 @@
 <resources>
     <color name="window_background">#FFFFFBFF</color>
-    <color name="launcher_background">#FFFFDBCB</color>
+    <color name="launcher_background">#FFFFDCC2</color>
     <color name="launcher_foreground">#FFB3261E</color>
 </resources>
