@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name" translatable="false">Caliu</string>
+    <string name="home_placeholder">Your thermostat, coming soon</string>
+</resources>

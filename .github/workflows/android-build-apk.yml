@@ -1,0 +1,68 @@
+name: Android Build APK
+
+# Construeix l'APK de debug i el puja com a artifact. Les pull requests només el construeixen (android-pr-build.yml)
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "android/**"
+      - ".github/workflows/android-build-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: android
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: caliu-debug
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 3
+
+  build-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # Sense keystore es construeix sense signar; serveix per comprovar que R8 i els recursos no trenquen el release
+      - name: Build release APK
+        run: ./gradlew :app:assembleRelease

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icona provisional (flama) fins que arribi el disseny -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="30"
+        android:translateY="30"
+        android:scaleX="2"
+        android:scaleY="2">
+        <path
+            android:fillColor="@color/launcher_foreground"
+            android:pathData="M12,22Q8.65,22 6.33,19.68Q4,17.35 4,14Q4,11.1 5.6,8.33Q7.2,5.55 10,3.4V5.6Q10,6.5 10.55,7.08Q11.1,7.65 11.95,7.65Q12.35,7.65 12.7,7.48Q13.05,7.3 13.35,6.95L14,6.2Q15.85,7.3 16.93,9.38Q18,11.45 18,14Q18,17.35 15.68,19.68Q13.35,22 12,22ZM12,20Q12.85,20 13.43,19.42Q14,18.85 14,18Q14,17.4 13.73,16.88Q13.45,16.35 12.85,15.8L12,15.05L11.15,15.8Q10.55,16.35 10.28,16.88Q10,17.4 10,18Q10,18.85 10.58,19.42Q11.15,20 12,20Z" />
+    </group>
+</vector>

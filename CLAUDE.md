@@ -8,7 +8,7 @@ Personal tooling for one Tuya Wi-Fi thermostat (R11, category `wk`, device id `b
 
 - Root = shared across platforms: Python Tuya tooling (`list_devices.py`), `.venv`, and the cloud credentials.
 - `macOS/` = SwiftUI menu bar app (`TermostatBar`), a Swift package with no Xcode project.
-- `android/` = placeholder for a future Android app (currently empty).
+- `android/` = Android app **Caliu** (`com.alorma.caliu`), a standalone Gradle project (Kotlin, Jetpack Compose, Material 3 Expressive from `material3` 1.5 beta). Modules: `:app` and `:designsystem` (theme `CaliuTheme`; the only place for `@OptIn(ExperimentalMaterial3ExpressiveApi::class)`). It follows the conventions of the sibling projects `../converses` and `../caducity`: version catalog in `gradle/libs.versions.toml`, ktlint with rules in `.editorconfig`, UI strings in `strings.xml` (English default, `values-ca`, `values-es`). It is still a vanilla skeleton waiting for the design.
 
 ## Commands
 
@@ -20,11 +20,15 @@ open ~/Applications/TermostatBar.app        # relaunch after building
 # Quick compile check only
 cd macOS && swift build -c release
 
+# Android app (run from android/)
+./gradlew :app:assembleDebug
+./gradlew ktlintCheck            # ktlintFormat to fix
+
 # Python: list cloud devices + their status (rewrites devices.json)
 .venv/bin/python list_devices.py
 ```
 
-There are no tests or linters.
+There are no tests. The only linter is ktlint in the Android project.
 
 ## Credentials (gitignored, never commit)
 
