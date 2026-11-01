@@ -62,6 +62,7 @@ macOS (`macOS/Sources/TuyaClient.swift`) i pel `CLAUDE.md` de l'arrel, i **mana 
 | Pausa | L'app de macOS ja fa la mateixa pausa: baixa la consigna i ho desa localment. | Es fa servir la fórmula del handoff i l'estat es desa a DataStore. Cal comprovar si el v2 té algun mode equivalent (`holiday`, `eco`…). |
 | `temp_correction` | El valor és −20 a propòsit. | No s'hi toca mai. |
 | Regió | EU | Es desa com a configuració, amb EU per defecte. |
+| `moodColorScheme` no fixa `surfaceVariant`, `surfaceTint` ni `inverseSurface` | Es quedarien amb el lila de M3 | Es deriven del mood: `cardHigh`, `primary` i `onSurface`/`card` (Snackbar). |
 
 ## Decisions de l'usuari (2026-11-01)
 

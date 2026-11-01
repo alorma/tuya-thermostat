@@ -25,15 +25,15 @@ Llegenda: ☐ pendent · ◐ en curs · ☑ fet
 
 ## Fase 1 · Tema Caliu (`:designsystem`)
 
-- ☐ Portar `disseny/android/Color.kt` a `theme/Color.kt`: `Mood`, `MoodPalette`, les paletes clara i fosca,
+- ☑ Portar `disseny/android/Color.kt` a `theme/Color.kt`: `Mood`, `MoodPalette`, les paletes clara i fosca,
   `FixedColors` i `moodColorScheme`. També cal exposar els rols que no són de M3 (`onSurfacePast`, `heroVariant`, `dial`,
   `temporary`, `track`) per un `CompositionLocal` (`LocalCaliuColors`).
-- ☐ `CaliuTheme(mood, darkTheme)`: `MaterialExpressiveTheme` amb `MotionScheme.expressive()`. El canvi de mood s'anima
+- ☑ `CaliuTheme(mood, darkTheme)`: `MaterialExpressiveTheme` amb `MotionScheme.expressive()`. El canvi de mood s'anima
   interpolant cada rol del `ColorScheme` en uns 300 ms. Es treu el color dinàmic de l'esquelet.
-- ☐ Portar `disseny/android/Type.kt` amb les fonts reals: `CaliuType`, més un `Typography` de M3 amb Roboto Flex.
-- ☐ Formes i espais: targetes de 32 i 24 dp, grups connectats (24/8 dp, separació de 2 dp), marge de 16 dp, 12 dp entre
+- ☑ Portar `disseny/android/Type.kt` amb les fonts reals: `CaliuType`, més un `Typography` de M3 amb Roboto Flex.
+- ☑ Formes i espais: targetes de 32 i 24 dp, grups connectats (24/8 dp, separació de 2 dp), marge de 16 dp, 12 dp entre
   seccions i títols de secció amb 8 dp de separació i de sagnat.
-- ☐ `CaliuPreviewTheme(mood)` i una galeria de previews: els 4 moods, en clar i fosc.
+- ☑ `CaliuPreviewTheme(mood)` i una galeria de previews: els 4 moods, en clar i fosc.
 
 **Validació:** comparar la galeria amb `design/tokens.json` i amb les captures `01`, `03`, `05` i `06`.
 
