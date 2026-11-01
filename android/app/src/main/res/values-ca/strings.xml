@@ -51,6 +51,9 @@
     <string name="empty_config_action">Configura</string>
     <string name="command_failed">No s\'ha pogut aplicar el canvi</string>
     <string name="tuya_trial_expired">La prova de l\'IoT Core ha caducat; renova-la a la consola de Tuya.</string>
+    <string name="tuya_not_authorized">Tuya no et deixa accedir al termòstat. Comprova que el compte de Tuya Smart continua vinculat al projecte i que l\'IoT Core està actiu.</string>
+    <string name="tuya_invalid_credentials">Les credencials de Tuya no són vàlides. Torna a copiar l\'Access ID i l\'Access Secret des de iot.tuya.com.</string>
+    <string name="tuya_unexpected_response">Tuya ha enviat una resposta inesperada.</string>
 
     <!-- Configuració -->
     <string name="config_title">Configuració</string>

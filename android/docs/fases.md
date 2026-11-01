@@ -74,25 +74,26 @@ handoff fan servir Inter i icones aproximades).
 
 ## Fase 3 · Capa Tuya
 
-- ☐ `TuyaSigner`: HMAC-SHA256 tal com diu la documentació oficial («Sign requests for Cloud authorization»). Té un test
+- ☑ `TuyaSigner`: HMAC-SHA256 tal com diu la documentació oficial («Sign requests for Cloud authorization»). Té un test
   unitari amb l'exemple de la documentació i es contrasta amb `TuyaClient.swift`.
-- ☐ `TuyaApi` sobre OkHttp:
+- ☑ `TuyaApi` sobre OkHttp:
   - token: obtenir-lo, guardar-lo i renovar-lo abans que caduqui;
   - `GET /v1.0/devices/{id}/status`;
   - `POST /v1.0/devices/{id}/commands` per a `switch` i `temp_set`;
   - `GET /v2.0/cloud/thing/{id}/shadow/properties` per a `work_state`, `mode` i `week_program_13_*`;
   - `POST …/shadow/properties/issue` per a `mode`.
-- ☐ `ThermostatDpMap`: els codes, l'escala (×10) i els límits per defecte, tots en un sol lloc.
-- ☐ `WeekProgramDecoder`: es porta de `ScheduleSlot.decode`. Té tests amb valors base64 reals (es demanen a l'usuari o
-  es llegeixen amb `list_devices.py`).
-- ☐ `TuyaError`: es tradueixen els errors de Tuya al català com a l'app de macOS (`28841002`, la prova d'IoT Core
+- ☑ `ThermostatDpMap`: els codes, l'escala (×10) i els límits per defecte, tots en un sol lloc.
+- ☑ `WeekProgramDecoder`: es porta de `ScheduleSlot.decode`. Té tests amb el valor base64 real del dispositiu i amb
+  valors construïts amb el format.
+- ☑ `TuyaError`: es tradueixen els errors de Tuya al català com a l'app de macOS (`28841002`, la prova d'IoT Core
   caducada, va a la consola), i els errors de xarxa passen a `Offline`.
-- ☐ `TuyaThermostatRepository`: ajunta v1 i v2 en un `ThermostatState`, amb el mapatge de mode `home`/`auto`/`temporary`
+- ☑ `TuyaThermostatRepository`: ajunta v1 i v2 en un `ThermostatState`, amb el mapatge de mode `home`/`auto`/`temporary`
   del `README.md`.
-- ☐ Interruptor per triar el repositori: la debug fa servir el simulat per defecte i només connecta amb Tuya si es
+- ☑ Interruptor per triar el repositori: la debug fa servir el simulat per defecte i només connecta amb Tuya si es
   demana explícitament (`caliu.realThermostat=true` a `local.properties`). La release sempre fa servir el real.
-- ☐ Comprovar amb el dispositiu, **només lectura**: si existeix `battery_percentage`, quins valors té `mode` per v2 i si
-  hi ha algun mode equivalent a la pausa.
+- ☑ Comprovar amb el dispositiu, **només lectura** (2026-11-01, amb un script de GET): `battery_percentage` existeix
+  (100); `mode` per v2 només admet `home`, `auto` i `temporary`, i no hi ha cap mode de vacances o eco. Resultats a la
+  secció «Diferències» del `README.md`.
 
 **Validació:** tests JVM, i una lectura real de l'estat des d'una pantalla de debug o un test manual.
 
@@ -123,8 +124,9 @@ handoff fan servir Inter i icones aproximades).
   correcte o error amb la causa (captures `13` i `14`).
 - ☐ «Desa» torna a la pantalla principal i força un refresc. Sense credencials es mostra l'estat «Falta la configuració»,
   amb el botó «Configura».
-- ☐ Precarregar les credencials en debug: `BuildConfig` llegeix `TUYA_*` de les variables d'entorn (GitHub Secrets al CI) o
-  de `local.properties`, igual que la funció `secret()` de Converses. Només a la debug.
+- ☑ Precarregar les credencials en debug: `BuildConfig` llegeix `TUYA_*` de les variables d'entorn (GitHub Secrets al CI) o
+  de `local.properties`, igual que la funció `secret()` de Converses. Només a la debug. (Fet a la fase 3, per poder fer
+  la lectura real.)
 - ☐ Passar els secrets `TUYA_*` com a `env` al pas de build de `android-build-apk.yml`.
 - ☐ Tests de captures `12`–`14`.
 

@@ -1,4 +1,5 @@
 import com.android.compose.screenshot.tasks.PreviewScreenshotValidationTask
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -6,6 +7,22 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.compose.screenshot)
 }
+
+// Credencials de Tuya per a la debug: de `local.properties` en local i de les variables d'entorn (GitHub Secrets) al CI.
+// Si no n'hi ha, queden buides i l'app mostra «Falta la configuració»
+val localProperties =
+  Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+  }
+
+fun secret(name: String): String = System.getenv(name) ?: localProperties.getProperty(name).orEmpty()
+
+fun String.quoted() = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+// La debug fa servir el termòstat simulat si no es demana explícitament el real, perquè les proves no toquin la
+// calefacció de casa. Es demana amb `caliu.realThermostat=true` a `local.properties`
+val realThermostatInDebug = localProperties.getProperty("caliu.realThermostat").toBoolean()
 
 android {
   namespace = "com.alorma.caliu"
@@ -39,13 +56,28 @@ android {
     }
   }
 
+  buildFeatures {
+    buildConfig = true
+  }
+
   buildTypes {
     debug {
       signingConfig = signingConfigs.getByName("debug")
+      buildConfigField("boolean", "REAL_THERMOSTAT", realThermostatInDebug.toString())
+      buildConfigField("String", "TUYA_ACCESS_ID", secret("TUYA_ACCESS_ID").quoted())
+      buildConfigField("String", "TUYA_ACCESS_SECRET", secret("TUYA_ACCESS_SECRET").quoted())
+      buildConfigField("String", "TUYA_REGION", secret("TUYA_REGION").quoted())
+      buildConfigField("String", "TUYA_DEVICE_ID", secret("TUYA_DEVICE_ID").quoted())
       // Permet tenir instal·lades a la vegada la versió de debug i la de release
       applicationIdSuffix = ".dev"
     }
     release {
+      // La release sempre parla amb Tuya i mai porta credencials al BuildConfig
+      buildConfigField("boolean", "REAL_THERMOSTAT", "true")
+      buildConfigField("String", "TUYA_ACCESS_ID", "\"\"")
+      buildConfigField("String", "TUYA_ACCESS_SECRET", "\"\"")
+      buildConfigField("String", "TUYA_REGION", "\"\"")
+      buildConfigField("String", "TUYA_DEVICE_ID", "\"\"")
       optimization {
         enable = true
       }
