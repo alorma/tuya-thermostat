@@ -18,6 +18,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +32,10 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import com.alorma.caliu.R
 import com.alorma.caliu.designsystem.R as DsR
 import com.alorma.caliu.designsystem.components.CaliuPullToRefreshBox
@@ -70,7 +74,7 @@ private const val TUYA_CONSOLE_URL = "https://iot.tuya.com"
 private val Presets = listOf(20.0, 21.0, 23.0)
 private val TimeFormat = DateTimeFormatter.ofPattern("HH:mm")
 
-/** Accions de la pantalla principal. Les que encara no fan res es connecten a la fase 4. */
+/** Accions de la pantalla principal. */
 @Immutable
 data class HomeActions(
   val onRefresh: () -> Unit = {},
@@ -94,6 +98,22 @@ fun HomeScreen(
 ) {
   val uiState by viewModel.uiState.collectAsStateWithLifecycle()
   val uriHandler = LocalUriHandler.current
+  val snackbarHostState = remember { SnackbarHostState() }
+  val commandFailed = stringResource(R.string.command_failed)
+  val lifecycleOwner = LocalLifecycleOwner.current
+
+  // Refresc cada 60 s només amb l'app en primer pla
+  LaunchedEffect(viewModel, lifecycleOwner) {
+    lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.refreshPeriodically() }
+  }
+  LaunchedEffect(viewModel) {
+    viewModel.events.collect { event ->
+      when (event) {
+        HomeEvent.CommandFailed -> snackbarHostState.showSnackbar(commandFailed)
+      }
+    }
+  }
+
   HomeContent(
     uiState = uiState,
     actions =
@@ -101,8 +121,17 @@ fun HomeScreen(
         onRefresh = viewModel::refresh,
         onOpenSettings = onOpenSettings,
         onOpenConsole = { uriHandler.openUri(TUYA_CONSOLE_URL) },
+        onActivate = viewModel::activate,
+        onPause = viewModel::pause,
+        onTurnOff = viewModel::turnOff,
+        onModeChange = viewModel::setMode,
+        onDecrease = viewModel::decrease,
+        onIncrease = viewModel::increase,
+        onPreset = viewModel::setPreset,
+        onBackToSchedule = viewModel::backToSchedule,
       ),
     modifier = modifier,
+    snackbarHostState = snackbarHostState,
   )
 }
 

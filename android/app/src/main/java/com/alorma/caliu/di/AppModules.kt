@@ -2,11 +2,14 @@ package com.alorma.caliu.di
 
 import com.alorma.caliu.BuildConfig
 import com.alorma.caliu.data.fake.FakeThermostatRepository
+import com.alorma.caliu.data.settings.DataStorePauseStore
 import com.alorma.caliu.data.tuya.BuildConfigTuyaConfigProvider
 import com.alorma.caliu.data.tuya.TuyaApi
 import com.alorma.caliu.data.tuya.TuyaConfigProvider
 import com.alorma.caliu.data.tuya.TuyaErrors
 import com.alorma.caliu.data.tuya.TuyaThermostatRepository
+import com.alorma.caliu.domain.PauseStore
+import com.alorma.caliu.domain.ThermostatController
 import com.alorma.caliu.domain.ThermostatRepository
 import com.alorma.caliu.ui.home.HomeViewModel
 import java.time.Clock
@@ -14,7 +17,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.viewModelOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 private const val TIMEOUT_SECONDS = 15L
@@ -40,11 +43,13 @@ private val dataModule =
         FakeThermostatRepository(clock = get())
       }
     }
+    single<PauseStore> { DataStorePauseStore(androidContext()) }
+    single { ThermostatController(repository = get(), pauseStore = get()) }
   }
 
 private val uiModule =
   module {
-    viewModelOf(::HomeViewModel)
+    viewModel { HomeViewModel(controller = get(), clock = get()) }
   }
 
 val appModules: List<Module> = listOf(dataModule, uiModule)

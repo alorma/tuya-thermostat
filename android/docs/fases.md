@@ -99,18 +99,30 @@ handoff fan servir Inter i icones aproximades).
 
 ## Fase 4 · Lògica de la pantalla principal
 
-- ☐ `HomeViewModel`:
+- ☑ `HomeViewModel`:
   - refresc cada 60 s amb l'app en primer pla (`repeatOnLifecycle(STARTED)`) i pull-to-refresh;
   - ordres optimistes que es reverteixen si fallen, amb el Snackbar «No s'ha pogut aplicar el canvi»;
   - debounce de 800 ms per a −/+;
   - límits `[min, max]`, amb els botons desactivats als extrems.
-- ☐ Pausa i activa: es desa `{mode, setpoint}` a DataStore, es passa a `home` i la consigna queda a
+- ☑ Pausa i activa: es desa `{mode, setpoint}` a DataStore, es passa a `home` i la consigna queda a
   `max(min, floor((current − 1) × 2) / 2)`. En sortir de la pausa, es restaura el que s'havia desat. Apaga i Activa
   envien `switch`.
-- ☐ Automàtic: el tram actiu es recalcula cada minut. Tocar −/+ al tram actiu envia `temp_set`, i el dispositiu passa a
+- ☑ Automàtic: el tram actiu es recalcula cada minut. Tocar −/+ al tram actiu envia `temp_set`, i el dispositiu passa a
   `temporary`. «Tornar al programa» envia `mode = auto`.
-- ☐ Tests del ViewModel amb un repositori fals i `MainDispatcherRule`.
+- ☑ Tests del ViewModel amb un repositori fals i `MainDispatcherRule`.
 - ☐ **Abans de provar cap escriptura al dispositiu real, cal demanar-ho a l'usuari.**
+
+**Traspàs (2026-11-01, sessió aturada pel límit):**
+
+- Fet i amb tests (66 tests JVM verds, ktlint i `assembleDebug` correctes): `ThermostatController` (`domain/`), el cas
+  d'ús compartit amb la rajola (pausa, activa, apaga, mode i consigna); `PauseStore` amb `DataStorePauseStore`; el
+  `HomeViewModel` amb ordres optimistes, debounce de 800 ms, refresc cada 60 s amb `repeatOnLifecycle(STARTED)`,
+  resincronització 2 s després de cada ordre i l'esdeveniment `CommandFailed` per al Snackbar.
+- Com l'app de macOS, la pausa desa la consigna baixa que posa i, si el dispositiu ja no la té (algú l'ha canviada des
+  de fora), la pausa s'abandona.
+- Pendent: provar a mà a l'emulador amb el termòstat **fals** (la debug el fa servir per defecte) cada acció del menú i
+  dels controls. S'havia instal·lat l'APK però no s'havia començat la prova. Després, amb permís de l'usuari, provar
+  les escriptures al dispositiu real (`caliu.realThermostat=true` a `local.properties`).
 
 **Validació:** tests JVM, i provar a mà, amb permís, cada acció del menú i dels controls.
 
