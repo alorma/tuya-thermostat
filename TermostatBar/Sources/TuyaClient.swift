@@ -65,6 +65,29 @@ struct ThermostatStatus {
     var maxTarget = 35.0
     var battery: Int?
     var isHeating = false
+    var mode: String?
+    var schedule: [ScheduleSlot] = []
+}
+
+struct ScheduleSlot: Equatable, Identifiable {
+    var minute: Int  // minuts des de mitjanit
+    var target: Double
+    var id: Int { minute }
+    var time: String { String(format: "%02d:%02d", minute / 60, minute % 60) }
+
+    /// Format raw de week_program_13_N: [dia, n, (hora, minut, temp×10 en 2 bytes) × n]
+    static func decode(base64: String) -> [ScheduleSlot] {
+        guard let data = Data(base64Encoded: base64), data.count >= 2 else { return [] }
+        let bytes = [UInt8](data)
+        let count = Int(bytes[1])
+        return (0..<count).compactMap { i in
+            let o = 2 + i * 4
+            guard o + 3 < bytes.count else { return nil }
+            let temp = Int(bytes[o + 2]) << 8 | Int(bytes[o + 3])
+            return ScheduleSlot(minute: Int(bytes[o]) * 60 + Int(bytes[o + 1]), target: Double(temp) / 10)
+        }
+        .sorted { $0.minute < $1.minute }
+    }
 }
 
 actor TuyaClient {
@@ -93,17 +116,31 @@ actor TuyaClient {
         result.minTarget = degrees("lower_temp") ?? 5
         result.maxTarget = degrees("upper_temp") ?? 35
         result.battery = values["battery_percentage"] as? Int
-        if result.isOn, let state = try? await workState() {
-            result.isHeating = state != "stop"
+        result.mode = values["mode"] as? String
+        let programCode = "week_program_13_\(Self.programDay(for: Date()))"
+        if let extra = try? await properties(["work_state", programCode]) {
+            result.isHeating = result.isOn && (extra["work_state"] as? String ?? "stop") != "stop"
+            result.schedule = (extra[programCode] as? String).map(ScheduleSlot.decode) ?? []
         }
         return result
     }
 
-    // work_state només surt a l'endpoint de propietats, no a /status
-    private func workState() async throws -> String? {
-        let json = try await request("GET", "/v2.0/cloud/thing/\(config.deviceId)/shadow/properties?codes=work_state")
-        let properties = (json["result"] as? [String: Any])?["properties"] as? [[String: Any]]
-        return properties?.first { $0["code"] as? String == "work_state" }?["value"] as? String
+    /// Tuya numera els programes de dilluns (1) a diumenge (7).
+    static func programDay(for date: Date) -> Int {
+        let weekday = Calendar.current.component(.weekday, from: date)  // 1 = diumenge
+        return (weekday + 5) % 7 + 1
+    }
+
+    // work_state i el programa setmanal només surten a l'endpoint de propietats, no a /status
+    private func properties(_ codes: [String]) async throws -> [String: Any] {
+        let path = "/v2.0/cloud/thing/\(config.deviceId)/shadow/properties?codes=\(codes.joined(separator: ","))"
+        let json = try await request("GET", path)
+        let items = (json["result"] as? [String: Any])?["properties"] as? [[String: Any]] ?? []
+        var values: [String: Any] = [:]
+        for item in items {
+            if let code = item["code"] as? String { values[code] = item["value"] }
+        }
+        return values
     }
 
     func send(code: String, value: Any) async throws {

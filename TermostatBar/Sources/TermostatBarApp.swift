@@ -75,6 +75,11 @@ struct PanelView: View {
             }
             .disabled(!model.isOn)
 
+            if model.mode != nil {
+                ScheduleView(model: model)
+                    .disabled(!model.isOn)
+            }
+
             Toggle("Pausa (encès, sense escalfar)", isOn: Binding(get: { model.isPaused }, set: model.setPaused))
                 .font(.caption)
                 .toggleStyle(.checkbox)
@@ -114,5 +119,66 @@ struct PanelView: View {
         .padding(16)
         .frame(width: 280)
         .task { await model.refresh() }
+    }
+}
+
+struct ScheduleView: View {
+    @ObservedObject var model: ThermostatModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Picker("Mode", selection: Binding(
+                get: { model.isAuto ? "auto" : "home" },
+                set: { model.setMode($0) }
+            )) {
+                Text("Automàtic").tag("auto")
+                Text("Manual").tag("home")
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+
+            if model.isTemporary {
+                HStack {
+                    Label(
+                        "Temporal" + (model.nextSlot().map { " fins a les \($0.time)" } ?? "")
+                            + String(format: " · %.1f°C", model.target),
+                        systemImage: "hand.tap"
+                    )
+                    .foregroundStyle(.orange)
+                    Spacer()
+                    Button("Tornar al programa") { model.setMode("auto") }
+                        .buttonStyle(.link)
+                }
+                .font(.caption)
+            }
+
+            if model.isAuto, !model.schedule.isEmpty {
+                // Es recalcula cada minut perquè el tram actiu canviï encara que no arribin dades noves
+                TimelineView(.everyMinute) { context in
+                    let current = model.currentSlot(at: context.date)
+                    VStack(spacing: 2) {
+                        ForEach(Array(model.schedule.enumerated()), id: \.element.id) { index, slot in
+                            let isCurrent = slot == current
+                            let isPast = current.map { slot.minute < $0.minute } ?? false
+                            let end = index + 1 < model.schedule.count ? model.schedule[index + 1].time : model.schedule[0].time
+                            HStack {
+                                Image(systemName: isCurrent ? "arrowtriangle.right.fill" : "circle.fill")
+                                    .font(.system(size: isCurrent ? 8 : 4))
+                                    .frame(width: 10)
+                                Text("\(slot.time) – \(end)").monospacedDigit()
+                                Spacer()
+                                Text(String(format: "%.1f°C", slot.target)).monospacedDigit()
+                            }
+                            .font(.caption.weight(isCurrent ? .semibold : .regular))
+                            .foregroundStyle(isCurrent ? AnyShapeStyle(.tint) : (isPast ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.secondary)))
+                            .padding(.vertical, 2)
+                            .padding(.horizontal, 6)
+                            .background(isCurrent ? AnyShapeStyle(.tint.opacity(0.12)) : AnyShapeStyle(.clear), in: .rect(cornerRadius: 5))
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
