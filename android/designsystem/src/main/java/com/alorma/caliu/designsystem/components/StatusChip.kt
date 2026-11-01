@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuGroup
@@ -80,7 +81,12 @@ fun StatusChip(
       )
     }
 
-    DropdownMenuPopup(expanded = expanded, onDismissRequest = { onExpandedChange(false) }) {
+    // Amplada del menú del handoff (captura 02)
+    DropdownMenuPopup(
+      expanded = expanded,
+      onDismissRequest = { onExpandedChange(false) },
+      modifier = Modifier.widthIn(min = 216.dp),
+    ) {
       val groups = listOf(primaryItems, secondaryItems).filter { it.isNotEmpty() }
       groups.forEachIndexed { groupIndex, items ->
         if (groupIndex > 0) Spacer(Modifier.height(MenuDefaults.GroupSpacing))

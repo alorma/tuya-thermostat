@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -342,6 +343,7 @@ private fun ManualControls(
 private fun HomeFooterFor(uiState: HomeUiState.Content) {
   val battery = uiState.state.battery
   HomeFooter(
+    modifier = Modifier.navigationBarsPadding(),
     battery = battery,
     batteryText = battery?.let { stringResource(R.string.battery_percent, it) },
     updatedText =
