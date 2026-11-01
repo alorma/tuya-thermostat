@@ -149,6 +149,14 @@ actor TuyaClient {
         if json["result"] as? Bool != true { throw TuyaError.api("El termòstat ha rebutjat l'ordre") }
     }
 
+    /// Escriu propietats pel model del dispositiu (v2). Cal per a valors que l'API d'ordres
+    /// estàndard no admet, com mode = "home" (allà només hi ha "auto").
+    func setProperties(_ properties: [String: Any]) async throws {
+        let inner = String(decoding: try JSONSerialization.data(withJSONObject: properties), as: UTF8.self)
+        let body = try JSONSerialization.data(withJSONObject: ["properties": inner])
+        _ = try await request("POST", "/v2.0/cloud/thing/\(config.deviceId)/shadow/properties/issue", body: body)
+    }
+
     private func ensureToken() async throws {
         if token != nil, tokenExpiry.timeIntervalSinceNow > 60 { return }
         token = nil

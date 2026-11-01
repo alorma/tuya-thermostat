@@ -119,7 +119,7 @@ final class ThermostatModel: ObservableObject {
         mode = newMode
         Task {
             do {
-                try await client?.send(code: "mode", value: newMode)
+                try await client?.setProperties(["mode": newMode])
                 clearError()
                 try? await Task.sleep(for: .seconds(2))
                 await refresh()
