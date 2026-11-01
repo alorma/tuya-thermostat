@@ -1,4 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos en anglès (idioma per defecte). Traduïts de values-ca, que segueix disseny/android/strings.xml -->
 <resources>
     <string name="app_name" translatable="false">Caliu</string>
+    <!-- Provisional fins a la fase 2 -->
     <string name="home_placeholder">Your thermostat, coming soon</string>
+
+    <!-- Status (chip and menu) -->
+    <string name="status_heating">Heating</string>
+    <string name="status_idle">Idle</string>
+    <string name="status_paused">Paused</string>
+    <string name="status_off">Off</string>
+    <string name="status_change_a11y">Status: %1$s. Change status</string>
+    <string name="action_activate">Turn on</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_turn_off">Turn off</string>
+
+    <!-- Section titles -->
+    <string name="section_current_temp">Current temperature</string>
+    <string name="section_mode">Mode</string>
+    <string name="section_setpoint">Target</string>
+    <string name="section_presets">Quick temperatures</string>
+    <string name="section_schedule">Today\'s schedule</string>
+
+    <!-- Values -->
+    <string name="temp_value">%1$s °C</string>
+    <string name="temp_preset">%1$d°</string>
+    <string name="temp_unknown" translatable="false">—</string>
+    <string name="schedule_range" translatable="false">%1$s – %2$s</string>
+
+    <!-- Mode -->
+    <string name="mode_auto">Schedule</string>
+    <string name="mode_manual">Manual</string>
+
+    <!-- Setpoint -->
+    <string name="setpoint_decrease">Lower target temperature</string>
+    <string name="setpoint_increase">Raise target temperature</string>
+
+    <!-- Temporary -->
+    <string name="temporary_until">Temporary until %1$s</string>
+    <string name="temporary_back">Back to schedule</string>
+
+    <!-- Footer -->
+    <string name="battery_percent">%1$d%%</string>
+    <string name="updated_at">Updated at %1$s</string>
+    <string name="updating">Updating…</string>
+    <string name="settings">Settings</string>
+
+    <!-- Errors and states -->
+    <string name="error_api_title">Tuya API error</string>
+    <string name="error_api_open_console">Open iot.tuya.com</string>
+    <string name="error_retry">Try again</string>
+    <string name="error_offline_title">No internet connection</string>
+    <string name="error_offline_body">Check your Wi-Fi or mobile data.</string>
+    <string name="empty_config_title">Setup needed</string>
+    <string name="empty_config_body">Connect your Tuya account to see the thermostat.</string>
+    <string name="empty_config_action">Set up</string>
+    <string name="command_failed">Couldn\'t apply the change</string>
+    <string name="tuya_trial_expired">The IoT Core trial has expired; renew it in the Tuya console.</string>
+
+    <!-- Settings -->
+    <string name="config_title">Settings</string>
+    <string name="config_save">Save</string>
+    <string name="config_back">Back</string>
+    <string name="config_access_id" translatable="false">Access ID</string>
+    <string name="config_access_secret" translatable="false">Access Secret</string>
+    <string name="config_show_secret">Show Access Secret</string>
+    <string name="config_hide_secret">Hide Access Secret</string>
+    <string name="config_region">Region</string>
+    <string name="config_device_id" translatable="false">Device ID</string>
+    <string name="config_test">Test connection</string>
+    <string name="config_testing">Testing connection…</string>
+    <string name="config_test_ok">Connection OK</string>
+    <string name="config_test_error">Couldn\'t connect</string>
+
+    <!-- Widgets and tile -->
+    <string name="tile_label">Thermostat</string>
+    <string name="tile_subtitle" translatable="false">%1$s · %2$s</string>
+    <string name="widget_small_name">Thermostat · small</string>
+    <string name="widget_medium_name">Thermostat · medium</string>
 </resources>

@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.alorma.caliu.designsystem.theme.CaliuTheme
-import com.alorma.caliu.ui.home.HomeScreen
+import com.alorma.caliu.ui.navigation.CaliuNavigation
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     setContent {
       CaliuTheme {
-        HomeScreen()
+        CaliuNavigation()
       }
     }
   }

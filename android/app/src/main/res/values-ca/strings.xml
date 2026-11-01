@@ -1,3 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Textos en català. Font: docs/disseny/android/strings.xml -->
 <resources>
     <string name="home_placeholder">El teu termòstat, aviat aquí</string>
+
+    <!-- Estat (xip i menú) -->
+    <string name="status_heating">Escalfant</string>
+    <string name="status_idle">En repòs</string>
+    <string name="status_paused">En pausa</string>
+    <string name="status_off">Apagat</string>
+    <string name="status_change_a11y">Estat: %1$s. Canvia l\'estat</string>
+    <string name="action_activate">Activa</string>
+    <string name="action_pause">Pausa</string>
+    <string name="action_turn_off">Apaga</string>
+
+    <!-- Títols de secció -->
+    <string name="section_current_temp">Temperatura actual</string>
+    <string name="section_mode">Mode</string>
+    <string name="section_setpoint">Consigna</string>
+    <string name="section_presets">Temperatures ràpides</string>
+    <string name="section_schedule">Programa d\'avui</string>
+
+    <!-- Valors -->
+    <string name="temp_value">%1$s °C</string>
+    <string name="temp_preset">%1$d°</string>
+
+    <!-- Mode -->
+    <string name="mode_auto">Automàtic</string>
+    <string name="mode_manual">Manual</string>
+
+    <!-- Consigna -->
+    <string name="setpoint_decrease">Baixa la consigna</string>
+    <string name="setpoint_increase">Puja la consigna</string>
+
+    <!-- Temporal -->
+    <string name="temporary_until">Temporal fins a les %1$s</string>
+    <string name="temporary_back">Tornar al programa</string>
+
+    <!-- Peu -->
+    <string name="battery_percent">%1$d %%</string>
+    <string name="updated_at">Actualitzat a les %1$s</string>
+    <string name="updating">Actualitzant…</string>
+    <string name="settings">Configuració</string>
+
+    <!-- Errors i estats -->
+    <string name="error_api_title">Error de l\'API de Tuya</string>
+    <string name="error_api_open_console">Obrir iot.tuya.com</string>
+    <string name="error_retry">Torna-ho a provar</string>
+    <string name="error_offline_title">Sense connexió a internet</string>
+    <string name="error_offline_body">Comprova la wifi o les dades mòbils.</string>
+    <string name="empty_config_title">Falta la configuració</string>
+    <string name="empty_config_body">Connecta el teu compte de Tuya per veure el termòstat.</string>
+    <string name="empty_config_action">Configura</string>
+    <string name="command_failed">No s\'ha pogut aplicar el canvi</string>
+    <string name="tuya_trial_expired">La prova de l\'IoT Core ha caducat; renova-la a la consola de Tuya.</string>
+
+    <!-- Configuració -->
+    <string name="config_title">Configuració</string>
+    <string name="config_save">Desa</string>
+    <string name="config_back">Enrere</string>
+    <string name="config_show_secret">Mostra l\'Access Secret</string>
+    <string name="config_hide_secret">Amaga l\'Access Secret</string>
+    <string name="config_region">Regió</string>
+    <string name="config_test">Provar connexió</string>
+    <string name="config_testing">Provant connexió…</string>
+    <string name="config_test_ok">Connexió correcta</string>
+    <string name="config_test_error">No s\'ha pogut connectar</string>
+
+    <!-- Widgets i rajola -->
+    <string name="tile_label">Termòstat</string>
+    <string name="widget_small_name">Termòstat · petit</string>
+    <string name="widget_medium_name">Termòstat · mitjà</string>
 </resources>

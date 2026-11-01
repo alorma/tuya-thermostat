@@ -7,18 +7,19 @@ Llegenda: ☐ pendent · ◐ en curs · ☑ fet
 
 ## Fase 0 · Fonaments
 
-- ☐ Textos: posar `disseny/android/strings.xml` a `values-ca/` i la traducció anglesa a `values/` (per defecte), amb
+- ☑ Textos: posar `disseny/android/strings.xml` a `values-ca/` i la traducció anglesa a `values/` (per defecte), amb
   `app_name` = «Caliu». Treure `values-es` i deixar `locales_config` amb `en` i `ca`.
-- ☐ Keystore de debug compartida a `certs/debug.keystore`, i fer-la servir al `signingConfig` de debug.
-- ☐ Fonts a `designsystem/src/main/res/font`: `roboto_flex.ttf` (es copia de Converses) i Nunito variable (de Google
+- ☑ Keystore de debug compartida a `certs/debug.keystore`, i fer-la servir al `signingConfig` de debug.
+- ☑ Fonts a `designsystem/src/main/res/font`: `roboto_flex.ttf` (es copia de Converses) i Nunito variable (de Google
   Fonts, amb llicència OFL).
-- ☐ Icones Material Symbols Rounded com a vector drawables a `:designsystem`:
+- ☑ Icones Material Symbols Rounded com a vector drawables a `:designsystem`:
   `local_fire_department`, `pause`, `pause_circle`, `play_arrow`, `power_settings_new`, `settings`, `arrow_back`,
   `keyboard_arrow_down/up`, `remove`, `add`, `back_hand`, `battery_*`, `schedule`, `error`, `wifi_off`, `key`,
   `visibility/visibility_off` i `check_circle`. N'hi ha de farcides i de no farcides.
-- ☐ Dependències al catàleg: Koin, Navigation 3, DataStore, kotlinx.serialization, OkHttp, coroutines i el plugin de
-  captures. Abans d'afegir-les, cal mirar la versió estable a la documentació oficial.
-- ☐ Paquets: `data/tuya`, `data/settings`, `domain`, `ui/home`, `ui/settings`, `ui/navigation`, `di`, `widget` i `tile`.
+- ☑ Dependències al catàleg: Koin, Navigation 3, DataStore, kotlinx.serialization, OkHttp, coroutines i el plugin de
+  captures. Abans d'afegir-les, cal mirar la versió estable a la documentació oficial. El plugin de captures només
+  té alphas (0.0.1-alpha16, la mateixa que Converses).
+- ☑ Paquets: `data/tuya`, `data/settings`, `domain`, `ui/home`, `ui/settings`, `ui/navigation`, `di`, `widget` i `tile`.
 
 **Validació:** `./gradlew :app:assembleDebug ktlintCheck`.
 
