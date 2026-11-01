@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Textos en català. Font: docs/disseny/android/strings.xml -->
 <resources>
-    <string name="home_placeholder">El teu termòstat, aviat aquí</string>
-
     <!-- Estat (xip i menú) -->
     <string name="status_heating">Escalfant</string>
     <string name="status_idle">En repòs</string>

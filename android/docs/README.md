@@ -37,6 +37,7 @@ Queda fora de l'abast:
 | Tipografia | Roboto Flex (la mateixa `.ttf` de Converses) i Nunito, totes dues a `res/font` amb llicència OFL. No es fan servir Downloadable Fonts. |
 | Icones | Material Symbols Rounded, importades com a vector drawables a `:designsystem` (unes 15). `material-icons-extended` són Material Icons, no Symbols. |
 | Tests | Tests JVM per a la signatura, el decodificador del programa, la fórmula de la pausa, el càlcul del mood i els ViewModels. Tests de captures de Compose per a cada captura del handoff, en clar i fosc. |
+| Termòstat simulat | `FakeThermostatRepository` (a `data/fake`) implementa `ThermostatRepository` en memòria, sense xarxa: segueix el programa, crea canvis temporals que caduquen al tram següent, apaga, i la temperatura s'acosta a la consigna a cada lectura. Amb `failure` es força qualsevol error. És el que fa servir l'app fins a la fase 3 i, després, la debug per defecte, perquè les proves no toquin mai la calefacció. |
 | Escriptura al dispositiu | Escriure afecta la calefacció de casa. Les proves contra el dispositiu real es demanen abans a l'usuari, com diu el `CLAUDE.md` de l'arrel. |
 
 ### API de Material 3 Expressive comprovades a la 1.5.0-beta01
@@ -62,6 +63,9 @@ macOS (`macOS/Sources/TuyaClient.swift`) i pel `CLAUDE.md` de l'arrel, i **mana 
 | Pausa | L'app de macOS ja fa la mateixa pausa: baixa la consigna i ho desa localment. | Es fa servir la fórmula del handoff i l'estat es desa a DataStore. Cal comprovar si el v2 té algun mode equivalent (`holiday`, `eco`…). |
 | `temp_correction` | El valor és −20 a propòsit. | No s'hi toca mai. |
 | Regió | EU | Es desa com a configuració, amb EU per defecte. |
+| Grup connectat (Mode, dreceres) amb `ButtonGroup` | A la 1.5.0-beta01, `ButtonGroup` només té la variant amb desbordament | Un `Row` de `ToggleButton` amb `ButtonGroupDefaults.connected*ButtonShapes`, que és el patró oficial de grup connectat de selecció única. |
+| Targeta hero de 134 dp | Les mètriques de Nunito fan la línia de 100 sp més alta | La targeta té l'alçada fixa i la xifra hi queda centrada. |
+| Bateria horitzontal a les captures | Les `battery_*` de Material Symbols són verticals | Es fan servir les verticals que es van importar a la fase 0. |
 | `moodColorScheme` no fixa `surfaceVariant`, `surfaceTint` ni `inverseSurface` | Es quedarien amb el lila de M3 | Es deriven del mood: `cardHigh`, `primary` i `onSurface`/`card` (Snackbar). |
 
 ## Decisions de l'usuari (2026-11-01)

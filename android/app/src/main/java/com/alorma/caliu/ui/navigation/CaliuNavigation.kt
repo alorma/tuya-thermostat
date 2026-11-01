@@ -24,7 +24,8 @@ fun CaliuNavigation(modifier: Modifier = Modifier) {
       ),
     entryProvider =
       entryProvider {
-        entry<HomeRoute> { HomeScreen() }
+        // La configuració encara no existeix: el botó no fa res fins a la fase 5
+        entry<HomeRoute> { HomeScreen(onOpenSettings = {}) }
       },
   )
 }

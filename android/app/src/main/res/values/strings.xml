@@ -2,8 +2,6 @@
 <!-- Textos en anglès (idioma per defecte). Traduïts de values-ca, que segueix disseny/android/strings.xml -->
 <resources>
     <string name="app_name" translatable="false">Caliu</string>
-    <!-- Provisional fins a la fase 2 -->
-    <string name="home_placeholder">Your thermostat, coming soon</string>
 
     <!-- Status (chip and menu) -->
     <string name="status_heating">Heating</string>

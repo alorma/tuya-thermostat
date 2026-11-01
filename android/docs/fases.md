@@ -39,13 +39,14 @@ Llegenda: ☐ pendent · ◐ en curs · ☑ fet
 
 ## Fase 2 · Pantalla principal amb dades falses
 
-Es fa sense xarxa. Un `FakeThermostatRepository` retorna estats fixos.
+Es fa sense xarxa. Un `FakeThermostatRepository` simula el termòstat en memòria (vegeu «Termòstat simulat» al
+`README.md`), i les previews fan servir estats fixos (`HomePreviewData`).
 
-- ☐ Model de domini: `ThermostatState` (els camps de `disseny/docs/01` § Model d'estat), `ScheduleSlot`, `Override`,
+- ☑ Model de domini: `ThermostatState` (els camps de `disseny/docs/01` § Model d'estat), `ScheduleSlot`, `Override`,
   `Mode` i `mood()`. Tests de `mood()`.
-- ☐ `HomeUiState`: `Loading` · `Content(state, refreshing)` · `ApiError(message, openConsole)` · `Offline` ·
+- ☑ `HomeUiState`: `Loading` · `Content(state, refreshing)` · `ApiError(message, openConsole)` · `Offline` ·
   `MissingConfig`.
-- ☐ Components a `:designsystem`, cadascun amb previews:
+- ☑ Components a `:designsystem`, cadascun amb previews:
   - `StatusChip`: un `Button` tertiary que obre un `DropdownMenuPopup` amb `DropdownMenuGroup` i ítems seleccionables.
   - `HeroTemperature`: un `Card` tertiaryContainer amb la xifra de 100 sp i «°C».
   - `SectionLabel`.
@@ -58,12 +59,15 @@ Es fa sense xarxa. Un `FakeThermostatRepository` retorna estats fixos.
   - `HomeFooter`: bateria i hora d'actualització.
   - `StatePanel`: per als errors i els estats buits.
   - `HomeSkeleton`.
-- ☐ `HomeScreen` / `HomeContent`: un `Scaffold` amb un `TopAppBar` sense títol, el xip a l'slot del títol i la icona de
+- ☑ `HomeScreen` / `HomeContent`: un `Scaffold` amb un `TopAppBar` sense títol, el xip a l'slot del títol i la icona de
   configuració a les accions, dins un `PullToRefreshBox` amb un `LoadingIndicator` expressiu. Té un `SnackbarHost`.
-- ☐ Estats Apagat i Pausa: controls desactivats (al 38 % d'opacitat quan està apagat); en pausa, el mode i la consigna
+- ☑ Estats Apagat i Pausa: controls desactivats (al 38 % d'opacitat quan està apagat); en pausa, el mode i la consigna
   que es recuperaran.
-- ☐ Format: coma decimal i un decimal (`20,4 °C`), dreceres sense decimal (`21°`) i «—» quan està apagat.
-- ☐ Tests de captures, un per a cada captura de la `01` a la `11`, en clar i fosc.
+- ☑ Format: coma decimal i un decimal (`20,4 °C`), dreceres sense decimal (`21°`) i «—» quan està apagat.
+- ☑ Tests de captures, un per a cada captura de la `01` a la `11`, en clar i fosc, més la pausa en manual (que no té
+  captura). La `02` es queda només com a preview: layoutlib no pinta els popups.
+- ☑ `HomeViewModel` mínim: llegeix l'estat en entrar, en estirar i en tornar-ho a provar. La resta d'accions arriben a
+  la fase 4.
 
 **Validació:** posar els tests de captures al costat de `disseny/captures/` (tenint en compte que les captures del
 handoff fan servir Inter i icones aproximades).
@@ -85,6 +89,8 @@ handoff fan servir Inter i icones aproximades).
   caducada, va a la consola), i els errors de xarxa passen a `Offline`.
 - ☐ `TuyaThermostatRepository`: ajunta v1 i v2 en un `ThermostatState`, amb el mapatge de mode `home`/`auto`/`temporary`
   del `README.md`.
+- ☐ Interruptor per triar el repositori: la debug fa servir el simulat per defecte i només connecta amb Tuya si es
+  demana explícitament (`caliu.realThermostat=true` a `local.properties`). La release sempre fa servir el real.
 - ☐ Comprovar amb el dispositiu, **només lectura**: si existeix `battery_percentage`, quins valors té `mode` per v2 i si
   hi ha algun mode equivalent a la pausa.
 
