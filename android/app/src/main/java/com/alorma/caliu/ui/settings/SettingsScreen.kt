@@ -1,5 +1,9 @@
 package com.alorma.caliu.ui.settings
 
+import android.app.StatusBarManager
+import android.content.ComponentName
+import android.graphics.drawable.Icon
+import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,20 +15,26 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalAutofillManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alorma.caliu.R
 import com.alorma.caliu.data.tuya.TuyaRegion
+import com.alorma.caliu.designsystem.R as DsR
 import com.alorma.caliu.designsystem.components.CaliuLargeTopBar
 import com.alorma.caliu.designsystem.components.ConnectionResultCard
 import com.alorma.caliu.designsystem.components.ConnectionTestButton
@@ -36,7 +46,9 @@ import com.alorma.caliu.designsystem.components.FormTextField
 import com.alorma.caliu.designsystem.components.RegionSelector
 import com.alorma.caliu.designsystem.theme.CaliuSpacing
 import com.alorma.caliu.designsystem.theme.CaliuTheme
+import com.alorma.caliu.designsystem.theme.CaliuType
 import com.alorma.caliu.designsystem.theme.Mood
+import com.alorma.caliu.tile.ThermostatTileService
 import org.koin.compose.viewmodel.koinViewModel
 
 /** Accions de Configuració. */
@@ -46,6 +58,8 @@ data class SettingsActions(
   val onSave: () -> Unit = {},
   val onRegionChange: (TuyaRegion) -> Unit = {},
   val onTestConnection: () -> Unit = {},
+  // Nul·la si el sistema no permet demanar-ho (abans d'Android 13): llavors no es mostra el botó
+  val onAddTile: (() -> Unit)? = null,
 )
 
 @Composable
@@ -75,6 +89,7 @@ fun SettingsScreen(
         onSave = viewModel::save,
         onRegionChange = viewModel::setRegion,
         onTestConnection = viewModel::testConnection,
+        onAddTile = rememberAddTileAction(),
       ),
     modifier = modifier,
   )
@@ -121,7 +136,30 @@ fun SettingsContent(
       ) {
         CredentialsForm(form, uiState, actions, initialSecretVisible)
         ConnectionTest(form, uiState, actions)
+        actions.onAddTile?.let { onAddTile ->
+          TextButton(onClick = onAddTile, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text(stringResource(R.string.config_add_tile), style = CaliuType.button)
+          }
+        }
       }
+    }
+  }
+}
+
+/** Demana al sistema que afegeixi la rajola al panell de configuració ràpida (Android 13+). */
+@Composable
+private fun rememberAddTileAction(): (() -> Unit)? {
+  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
+  val context = LocalContext.current
+  val label = stringResource(R.string.tile_label)
+  return remember(context, label) {
+    {
+      context.getSystemService(StatusBarManager::class.java)?.requestAddTileService(
+        ComponentName(context, ThermostatTileService::class.java),
+        label,
+        Icon.createWithResource(context, DsR.drawable.ic_local_fire_department_filled),
+        context.mainExecutor,
+      ) { }
     }
   }
 }

@@ -75,6 +75,7 @@
     <string name="config_testing">Testing connection…</string>
     <string name="config_test_ok">Connection OK</string>
     <string name="config_test_error">Couldn\'t connect</string>
+    <string name="config_add_tile">Add Quick Settings tile</string>
 
     <!-- Widgets and tile -->
     <string name="tile_label">Thermostat</string>

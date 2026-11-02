@@ -67,6 +67,7 @@
     <string name="config_testing">Provant connexió…</string>
     <string name="config_test_ok">Connexió correcta</string>
     <string name="config_test_error">No s\'ha pogut connectar</string>
+    <string name="config_add_tile">Afegeix la rajola al panell ràpid</string>
 
     <!-- Widgets i rajola -->
     <string name="tile_label">Termòstat</string>

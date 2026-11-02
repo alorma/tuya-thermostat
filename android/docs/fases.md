@@ -189,11 +189,23 @@ text pla al DataStore.
 
 ## Fase 7 · Rajola de configuració ràpida
 
-- ☐ `TileService`: el títol és «Termòstat» («Thermostat» en anglès) i el subtítol, «20,4 °C · Escalfant», «… · En pausa» o «Apagat».
-- ☐ Tocar-la alterna la pausa, no l'encesa. Activa correspon a `STATE_ACTIVE` i en pausa a `STATE_INACTIVE`.
-- ☐ Fa servir la mateixa lògica de pausa que el ViewModel, extreta a un cas d'ús compartit.
-- ☐ Oferir afegir la rajola des de l'app amb `StatusBarManager.requestAddTileService` (Android 13+), per exemple des de
+- ☑ `TileService`: el títol és «Termòstat» («Thermostat» en anglès) i el subtítol, «20,4 °C · Escalfant», «… · En pausa» o «Apagat».
+- ☑ Tocar-la alterna la pausa, no l'encesa. Activa correspon a `STATE_ACTIVE` i en pausa a `STATE_INACTIVE`.
+- ☑ Fa servir la mateixa lògica de pausa que el ViewModel, extreta a un cas d'ús compartit.
+- ☑ Oferir afegir la rajola des de l'app amb `StatusBarManager.requestAddTileService` (Android 13+), per exemple des de
   Configuració, perquè no s'hagi d'anar a editar el panell a mà.
+
+**Notes (2026-11-02):**
+
+- `ThermostatTileService` (no és una rajola activa: el sistema la consulta cada vegada que s'obre el panell). Primer es
+  pinta amb l'estat de `SnapshotStore` i després es torna a llegir el termòstat.
+- Tocar-la crida `ThermostatController.togglePause()`, la mateixa pausa que el menú d'estat. El canvi és optimista i es
+  desfà si l'ordre falla.
+- Apagat: `STATE_UNAVAILABLE` amb el subtítol «Apagat», perquè la rajola no encén el termòstat. Sense dades encara:
+  `STATE_INACTIVE` i cap subtítol.
+- A Configuració, el botó «Afegeix la rajola al panell ràpid» (només a Android 13+) crida `requestAddTileService`.
+- Pendent per a la prova final: afegir la rajola, mirar-ne el subtítol en cada estat i alternar la pausa amb el
+  termòstat simulat.
 
 **Validació:** captura `15`, i alternar la pausa des de la rajola (amb permís).
 
