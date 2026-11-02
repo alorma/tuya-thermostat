@@ -34,7 +34,7 @@ class TuyaStateMapperTest {
     buildMap {
       put("mode", JsonPrimitive(mode))
       workState?.let { put("work_state", JsonPrimitive(it)) }
-      put(program, JsonPrimitive("AQYAAACqBh4A0ggAAMgOAAC+EgAA0hYeAKo="))
+      put(program, JsonPrimitive("AQAAAKoGHgDSCAAAyA4AAL4SAADSFh4Aqg=="))
     }
 
   private fun map(

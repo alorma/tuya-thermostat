@@ -5,20 +5,21 @@ import com.alorma.caliu.domain.ScheduleSlot
 import java.util.Base64
 
 /**
- * Decodifica `week_program_13_N`, portat de `ScheduleSlot.decode` de l'app de macOS. El valor és base64 d'aquests
- * bytes: `[dia, n, (hora, minut, temp×10 en uint16 big-endian) × n]`.
+ * Decodifica `week_program_13_N`, portat de `ScheduleSlot.decode` de l'app de macOS. El valor és base64 de 25 bytes:
+ * `[dia, (hora, minut, temp×10 en uint16 big-endian) × 6]`. No hi ha byte de recompte: el segon byte ja és l'hora del
+ * primer tram (si se'n posa un, tots els camps queden desplaçats i l'app Smart Life mostra trams com `220:13 | 0.0°C`).
  *
  * Cada tram acaba on comença el següent i l'últim a les 24:00. Si el primer no comença a les 00:00, el tram de
  * mitjanit pren la consigna de l'últim (és el que continua del dia anterior).
  */
 object WeekProgramDecoder {
-  private const val HEADER = 2
+  private const val HEADER = 1
   private const val ENTRY = 4
 
   fun decode(base64: String): List<ScheduleSlot> {
     val bytes = runCatching { Base64.getDecoder().decode(base64.trim()) }.getOrNull() ?: return emptyList()
     if (bytes.size < HEADER) return emptyList()
-    val count = bytes[1].toUByte().toInt()
+    val count = (bytes.size - HEADER) / ENTRY
     val starts =
       (0 until count)
         .mapNotNull { i ->

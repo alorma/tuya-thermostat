@@ -11,8 +11,8 @@ import org.junit.Test
 class WeekProgramDecoderTest {
   @Test
   fun `decodifica el programa real del termòstat`() {
-    // week_program_13_1 llegit del dispositiu el 2026-11-01: 6 trams i el primer a les 06:15
-    val slots = WeekProgramDecoder.decode("AQYGDwDcDQAAzQ8AANwRAADmFQAA3BctAM0=")
+    // week_program_13_1 escrit al dispositiu el 2026-11-02 i validat a l'app Smart Life: 6 trams, el primer a les 06:15
+    val slots = WeekProgramDecoder.decode("AQYPANwNAADNDwAA3BEAAOYVAADcFy0AzQ==")
     assertEquals(
       listOf(
         ScheduleSlot(MinuteOfDay.Midnight, MinuteOfDay.of(6, 15), 20.5),
@@ -28,25 +28,33 @@ class WeekProgramDecoderTest {
   }
 
   @Test
+  fun `no hi ha byte de recompte després del dia`() {
+    // Valor corrupte que vam escriure el 2026-11-01 amb un byte de recompte (06) de més: l'app Smart Life el mostrava
+    // com 06:06 | 384,0 °C. Amb el format correcte, el primer tram surt a les 06:06.
+    val slots = WeekProgramDecoder.decode("AQYGDwDcDQAAzQ8AANwRAADmFQAA3BctAM0=")
+    assertEquals(MinuteOfDay.of(6, 6), slots.first { it.start != MinuteOfDay.Midnight }.start)
+  }
+
+  @Test
   fun `el primer byte és el dia de la setmana`() {
     // Els 7 dies del dispositiu tenen els mateixos trams i només canvia el primer byte
     assertEquals(
-      WeekProgramDecoder.decode("AQYGDwDcDQAAzQ8AANwRAADmFQAA3BctAM0="),
-      WeekProgramDecoder.decode("BwYGDwDcDQAAzQ8AANwRAADmFQAA3BctAM0="),
+      WeekProgramDecoder.decode("AQYPANwNAADNDwAA3BEAAOYVAADcFy0AzQ=="),
+      WeekProgramDecoder.decode("BwYPANwNAADNDwAA3BEAAOYVAADcFy0AzQ=="),
     )
   }
 
   @Test
   fun `decodifica els 6 trams del programa de les captures`() {
-    // [1, 6, (0:00 17,0) (6:30 21,0) (8:00 20,0) (14:00 19,0) (18:00 21,0) (22:30 17,0)]
-    val slots = WeekProgramDecoder.decode("AQYAAACqBh4A0ggAAMgOAAC+EgAA0hYeAKo=")
+    // [1, (0:00 17,0) (6:30 21,0) (8:00 20,0) (14:00 19,0) (18:00 21,0) (22:30 17,0)]
+    val slots = WeekProgramDecoder.decode("AQAAAKoGHgDSCAAAyA4AAL4SAADSFh4Aqg==")
     assertEquals(FakeThermostatRepository.DefaultSchedule, slots)
   }
 
   @Test
   fun `si no comença a mitjanit, el primer tram continua el de l'últim`() {
-    // [1, 2, (6:30 21,0) (22:30 17,0)]
-    val slots = WeekProgramDecoder.decode("AQIGHgDSFh4Aqg==")
+    // [1, (6:30 21,0) (22:30 17,0)]
+    val slots = WeekProgramDecoder.decode("AQYeANIWHgCq")
     assertEquals(
       listOf(
         ScheduleSlot(MinuteOfDay.Midnight, MinuteOfDay.of(6, 30), 17.0),
@@ -59,16 +67,16 @@ class WeekProgramDecoderTest {
 
   @Test
   fun `ordena els trams per hora`() {
-    // [1, 2, (22:30 17,0) (6:30 21,0)]
-    assertEquals(WeekProgramDecoder.decode("AQIGHgDSFh4Aqg=="), WeekProgramDecoder.decode("AQIWHgCqBh4A0g=="))
+    // [1, (22:30 17,0) (6:30 21,0)]
+    assertEquals(WeekProgramDecoder.decode("AQYeANIWHgCq"), WeekProgramDecoder.decode("ARYeAKoGHgDS"))
   }
 
   @Test
   fun `un valor buit, truncat o que no és base64 dona un programa buit o parcial`() {
     assertTrue(WeekProgramDecoder.decode("").isEmpty())
     assertTrue(WeekProgramDecoder.decode("no és base64!").isEmpty())
-    // Diu 6 trams però només en porta 1
-    assertEquals(1, WeekProgramDecoder.decode("AQYAAACq").size)
+    // Un tram sencer (0:00 17,0) i un de truncat a mig camí: només compta el sencer
+    assertEquals(1, WeekProgramDecoder.decode("AQAAAKoGHg==").size)
   }
 
   @Test
