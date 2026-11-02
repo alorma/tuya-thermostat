@@ -8,3 +8,6 @@ data object HomeRoute : NavKey
 
 @Serializable
 data object SettingsRoute : NavKey
+
+@Serializable
+data object ScheduleRoute : NavKey

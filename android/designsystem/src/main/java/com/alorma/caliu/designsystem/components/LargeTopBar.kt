@@ -1,12 +1,15 @@
 package com.alorma.caliu.designsystem.components
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -15,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.alorma.caliu.designsystem.R
 import com.alorma.caliu.designsystem.preview.CaliuPreviewTheme
 import com.alorma.caliu.designsystem.preview.CaliuPreviews
@@ -23,7 +27,8 @@ import com.alorma.caliu.designsystem.theme.CaliuType
 
 /**
  * Barra gran d'una pantalla secundària (Configuració): `LargeFlexibleTopAppBar` amb `arrow_back`, el títol gran i un
- * botó d'acció principal ([actionLabel], per exemple «Desa»). El títol gran és `displaySmall` de `CaliuTypography`.
+ * botó d'acció principal ([actionLabel], per exemple «Desa»). Amb [actionLoading], el botó mostra un `LoadingIndicator`
+ * petit en lloc del text. El títol gran és `displaySmall` de `CaliuTypography`.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -35,6 +40,7 @@ fun CaliuLargeTopBar(
   onAction: () -> Unit,
   modifier: Modifier = Modifier,
   actionEnabled: Boolean = true,
+  actionLoading: Boolean = false,
   scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   val background = MaterialTheme.colorScheme.background
@@ -53,7 +59,11 @@ fun CaliuLargeTopBar(
         enabled = actionEnabled,
         modifier = Modifier.padding(end = CaliuSpacing.s),
       ) {
-        Text(actionLabel, style = CaliuType.button)
+        if (actionLoading) {
+          LoadingIndicator(modifier = Modifier.size(24.dp), color = LocalContentColor.current)
+        } else {
+          Text(actionLabel, style = CaliuType.button)
+        }
       }
     },
     colors =

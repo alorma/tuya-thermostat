@@ -6,6 +6,7 @@ import com.alorma.caliu.domain.Override
 import com.alorma.caliu.domain.ScheduleSlot
 import com.alorma.caliu.domain.ThermostatState
 import com.alorma.caliu.domain.activeSlotIndex
+import com.alorma.caliu.domain.daySchedule
 import java.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.booleanOrNull
@@ -17,6 +18,9 @@ import kotlinx.serialization.json.jsonPrimitive
  * Converteix els valors de v1 (`/status`) i v2 (`shadow/properties`) en un [ThermostatState]. Si un codi surt a tots
  * dos llocs, mana v2.
  *
+ * El programa d'avui ([todayCode]) necessita també el del dia anterior ([previousCode]): de 00:00 al primer tram mana
+ * l'últim tram d'ahir.
+ *
  * Mode: `home` → [Mode.MANUAL]; `auto` → [Mode.AUTO]; `temporary` → [Mode.AUTO] amb un [Override] fins al final del
  * tram actiu (el dispositiu hi passa sol quan es toca la consigna en automàtic).
  */
@@ -24,7 +28,8 @@ object TuyaStateMapper {
   fun map(
     status: Map<String, JsonElement>,
     properties: Map<String, JsonElement>,
-    programCode: String,
+    todayCode: String,
+    previousCode: String,
     now: MinuteOfDay,
     lastUpdated: Instant,
   ): ThermostatState {
@@ -41,7 +46,10 @@ object TuyaStateMapper {
     val mode = if (rawMode == ThermostatDpMap.MODE_MANUAL) Mode.MANUAL else Mode.AUTO
     val setpoint = celsius(ThermostatDpMap.TEMP_SET) ?: 0.0
     val current = celsius(ThermostatDpMap.TEMP_CURRENT)
-    val schedule = string(programCode)?.let(WeekProgramDecoder::decode).orEmpty()
+
+    fun program(code: String) = string(code)?.let(WeekProgramDecoder::decode).orEmpty()
+
+    val schedule = daySchedule(today = program(todayCode), previous = program(previousCode))
     val workState = string(ThermostatDpMap.WORK_STATE)
     val heating =
       if (workState != null) {

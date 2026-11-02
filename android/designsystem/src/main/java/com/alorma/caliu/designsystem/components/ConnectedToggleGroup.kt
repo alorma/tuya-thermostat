@@ -156,7 +156,7 @@ private fun ConnectedToggleGroup(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun connectedShapes(
+internal fun connectedShapes(
   index: Int,
   count: Int,
 ): ToggleButtonShapes =

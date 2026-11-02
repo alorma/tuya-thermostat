@@ -88,11 +88,13 @@ data class HomeActions(
   val onIncrease: () -> Unit = {},
   val onPreset: (Double) -> Unit = {},
   val onBackToSchedule: () -> Unit = {},
+  val onEditSchedule: () -> Unit = {},
 )
 
 @Composable
 fun HomeScreen(
   onOpenSettings: () -> Unit,
+  onEditSchedule: () -> Unit,
   modifier: Modifier = Modifier,
   viewModel: HomeViewModel = koinViewModel(),
 ) {
@@ -102,7 +104,7 @@ fun HomeScreen(
   val commandFailed = stringResource(R.string.command_failed)
   val lifecycleOwner = LocalLifecycleOwner.current
 
-  // Refresc cada 60 s només amb l'app en primer pla
+  // Refresc periòdic només amb l'app en primer pla
   LaunchedEffect(viewModel, lifecycleOwner) {
     lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { viewModel.refreshPeriodically() }
   }
@@ -129,6 +131,7 @@ fun HomeScreen(
         onIncrease = viewModel::increase,
         onPreset = viewModel::setPreset,
         onBackToSchedule = viewModel::backToSchedule,
+        onEditSchedule = onEditSchedule,
       ),
     modifier = modifier,
     snackbarHostState = snackbarHostState,
@@ -313,7 +316,12 @@ private fun AutoControls(
       enabled = enabled,
     )
   }
-  Section(stringResource(R.string.section_schedule)) {
+  // «Edita» no depèn de l'encesa ni de la pausa: el programa es pot preparar igualment
+  Section(
+    label = stringResource(R.string.section_schedule),
+    actionLabel = stringResource(R.string.schedule_edit),
+    onAction = actions.onEditSchedule,
+  ) {
     TodaySchedule(
       rows =
         state.schedule.mapIndexed { index, slot ->

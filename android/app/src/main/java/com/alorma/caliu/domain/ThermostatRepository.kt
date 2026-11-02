@@ -1,5 +1,7 @@
 package com.alorma.caliu.domain
 
+import java.time.DayOfWeek
+
 /**
  * Accés al termòstat. La implementació real (Tuya Cloud) arriba a la fase 3; fins aleshores, i a la debug per defecte,
  * es fa servir `FakeThermostatRepository`, que no toca el dispositiu.
@@ -17,6 +19,15 @@ interface ThermostatRepository {
 
   /** Passar a [Mode.AUTO] també descarta el canvi temporal, si n'hi ha. */
   suspend fun setMode(mode: Mode)
+
+  /** Els 7 dies del programa setmanal. */
+  suspend fun weekProgram(): WeekProgram
+
+  /** Escriu el programa d'un dia ([WeekProgram.SLOTS_PER_DAY] trams en ordre d'hora). */
+  suspend fun setDayProgram(
+    day: DayOfWeek,
+    entries: List<ProgramEntry>,
+  )
 }
 
 sealed class ThermostatException(

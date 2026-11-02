@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.alorma.caliu.ui.home.HomeScreen
+import com.alorma.caliu.ui.schedule.ScheduleScreen
 import com.alorma.caliu.ui.settings.SettingsScreen
 
 @Composable
@@ -24,10 +25,22 @@ fun CaliuNavigation(modifier: Modifier = Modifier) {
       ),
     entryProvider =
       entryProvider {
-        entry<HomeRoute> { HomeScreen(onOpenSettings = { backStack.add(SettingsRoute) }) }
+        entry<HomeRoute> {
+          HomeScreen(
+            onOpenSettings = { backStack.add(SettingsRoute) },
+            onEditSchedule = { backStack.add(ScheduleRoute) },
+          )
+        }
         // Desar torna a la principal, que es refresca sola quan el CredentialsStore avisa que s'ha desat
         entry<SettingsRoute> {
           SettingsScreen(
+            onBack = { backStack.removeLastOrNull() },
+            onSaved = { backStack.removeLastOrNull() },
+          )
+        }
+        // Desar també torna a la principal, que torna a llegir el programa d'avui quan ProgramChanges avisa
+        entry<ScheduleRoute> {
+          ScheduleScreen(
             onBack = { backStack.removeLastOrNull() },
             onSaved = { backStack.removeLastOrNull() },
           )

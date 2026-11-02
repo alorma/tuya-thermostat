@@ -250,29 +250,29 @@ i les captures `19-programa-edit`, `-copy`, `-time` i `-copied`, en clar i fosc.
 Escriu el programa del termòstat real, que és el que fa anar la calefacció de casa. El 2026-11-01 un byte de més ja el
 va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i després de desar cal mirar-lo a Smart Life.
 
-- ☐ Pantalla principal: el botó de text «Edita» a la dreta del títol «Programa d'avui», només en mode Automàtic. Les
+- ☑ Pantalla principal: el botó de text «Edita» a la dreta del títol «Programa d'avui», només en mode Automàtic. Les
   captures `01`, `02` i `04`–`07` han canviat per això: cal tornar a generar-ne els tests de captures.
-- ☐ `WeekProgramEncoder`: l'invers de `WeekProgramDecoder`, 25 bytes `[dia, (h, min, temp×10 u16 BE)×6]`, **sense byte de
+- ☑ `WeekProgramEncoder`: l'invers de `WeekProgramDecoder`, 25 bytes `[dia, (h, min, temp×10 u16 BE)×6]`, **sense byte de
   recompte**. Tests d'anada i tornada amb el valor real del dispositiu, i que la mida sigui sempre 25.
-- ☐ `WeekProgramDecoder` torna els **6 trams reals** del dia, sense afegir-ne cap a les 00:00. Ara se'n posa un de
+- ☑ `WeekProgramDecoder` torna els **6 trams reals** del dia, sense afegir-ne cap a les 00:00. Ara se'n posa un de
   virtual a les 00:00 (`WeekProgramDecoder.kt:38`) amb la consigna de l'últim tram **d'avui**. El tram de la
   matinada (de 00:00 al primer tram) l'ha de calcular el domini amb l'últim tram **del dia anterior** (dilluns
   agafa el de diumenge): a «Programa d'avui», al tram actiu, al widget, a la barra de 24 h i al termòstat
   simulat. Ara no es nota perquè els 7 dies són iguals. Tests amb dies diferents.
-- ☐ `TuyaApi` / `ThermostatRepository`: llegir els 7 dies (`week_program_13_1` … `_7`, ja es llegeixen per al programa
+- ☑ `TuyaApi` / `ThermostatRepository`: llegir els 7 dies (`week_program_13_1` … `_7`, ja es llegeixen per al programa
   d'avui) i escriure'n un per `shadow/properties/issue`. Al `FakeThermostatRepository`, desar-lo en memòria (amb
   `failure` per provar l'error d'un dia).
-- ☐ `ScheduleViewModel`: còpia de treball dels 7 dies; dia seleccionat (avui en obrir); dies modificats; −/+ a passos de
+- ☑ `ScheduleViewModel`: còpia de treball dels 7 dies; dia seleccionat (avui en obrir); dies modificats; −/+ a passos de
   0,5 °C dins `[min, max]`; hora de cada tram entre la de l'anterior i la del següent; copiar un dia a d'altres;
   desar només els modificats, una ordre per dia, i deixar marcat el que falli.
-- ☐ Components a `:designsystem` amb previews: selector de dia (7 `ToggleButton` connectats, anell a avui, punt als
+- ☑ Components a `:designsystem` amb previews: selector de dia (7 `ToggleButton` connectats, anell a avui, punt als
   modificats), barra de 24 h (segments proporcionals, 5 nivells de color de `heat-hero` a `heat`, marques 0·6·12·18·24)
   i la fila de tram (hora en píndola tonal, temperatura amb −/+).
-- ☐ `ScheduleScreen`: `LargeFlexibleTopAppBar` amb «Desa» (com Configuració), `TimePickerDialog` 24 h,
+- ☑ `ScheduleScreen`: `LargeFlexibleTopAppBar` amb «Desa» (com Configuració), `TimePickerDialog` 24 h,
   `ModalBottomSheet` «Copia el … a» (dies en selecció múltiple, dreceres Feiners · Cap de setmana · Tots), Snackbar
   «Copiat a N dies» i `AlertDialog` «Descartar els canvis?» en sortir amb canvis. Ruta nova a Navigation 3.
-- ☐ Textos `schedule_*` a `values-ca/` i la traducció a `values/` (anglès).
-- ☐ Tests del ViewModel i tests de captures `19-programa-*` (el full inferior i el selector d'hora, si layoutlib no els
+- ☑ Textos `schedule_*` a `values-ca/` i la traducció a `values/` (anglès).
+- ☑ Tests del ViewModel i tests de captures `19-programa-*` (el full inferior i el selector d'hora, si layoutlib no els
   pinta, com a previews, igual que la `02`).
 - ☐ Desar, amb permís, un canvi petit al dispositiu real, tornar-lo a llegir i comprovar-lo a Smart Life.
 
@@ -286,6 +286,29 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
   següent. De 00:00 al primer tram s'aplica l'últim tram del dia anterior, i la barra de 24 h pinta aquest tros amb el
   color de l'últim tram del dia anterior. No hi ha cap tram fix a les 00:00 com al handoff, però un tram pot començar
   a les 00:00 si es vol.
+
+**Notes (2026-11-02):**
+
+- Domini: `ProgramEntry` (inici + consigna) i `WeekProgram` (els 7 dies). `daySchedule(today, previous)` fa els trams
+  de 00:00 a 24:00 i, si el primer no comença a les 00:00, hi posa el tram de matinada amb l'últim tram del dia
+  anterior. Ho fan servir el mapper de Tuya (que ara llegeix el programa d'avui i el d'ahir), el simulat, el widget i
+  la barra de 24 h.
+- `WeekProgramEncoder` comprova abans d'enviar res que hi hagi 6 trams en ordre estricte d'hora, el dia d'1 a 7 i la
+  temperatura dins d'uint16. Torna a codificar exactament el valor real del dispositiu (test).
+- `ThermostatRepository.weekProgram()` llegeix els 7 DPs en una sola crida de v2; `setDayProgram` n'escriu un per
+  `shadow/properties/issue`. El simulat ho desa en memòria (`failingDays` per provar l'error d'un dia) i a la debug el
+  cap de setmana té un programa diferent, perquè es vegi el tram de matinada del dissabte, el diumenge i el dilluns.
+- `ScheduleViewModel` no deixa editar si algun dia no té 6 trams (estat «No es pot llegir el programa»). Desar envia
+  els dies modificats de dilluns a diumenge; si n'ha desat algun, `ProgramChanges` avisa la principal, que torna a
+  llegir. Mentre desa, el botó «Desa» mostra un `LoadingIndicator` i no es pot editar.
+- La barra de 24 h acoloreix per trams fixos de temperatura (≤18 °C neutre, 19, 20, 21, ≥21,5 °C), perquè un valor
+  tingui el mateix color tots els dies.
+- «Edita» surt sempre en automàtic, també apagat o en pausa: el programa es pot preparar igualment.
+- El full «Copia el … a» i el selector d'hora es pinten a mà a les captures (`19-programa-copy`, `-time`), perquè
+  layoutlib no pinta les finestres. A l'app són `ModalBottomSheet` i `TimePickerDialog` amb `TimeInput`.
+- Pendent per a la prova final: a l'emulador amb el simulat, editar hores i temperatures, copiar, desar (també amb un
+  dia que falli), sortir amb canvis i comprovar que la principal mostra el programa nou. Després, **amb permís**, un
+  canvi petit al dispositiu real comprovat a Smart Life.
 
 **Validació:** tests JVM i de captures, ktlint, provar-ho a l'emulador amb el termòstat simulat i, amb permís, una
 escriptura real comprovada a Smart Life.

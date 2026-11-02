@@ -86,4 +86,47 @@
     <string name="tile_subtitle" translatable="false">%1$s · %2$s</string>
     <string name="widget_small_name">Thermostat · small</string>
     <string name="widget_medium_name">Thermostat · medium</string>
+
+    <!-- Weekly schedule -->
+    <string name="schedule_edit">Edit</string>
+    <string name="schedule_title">Schedule</string>
+    <string name="schedule_save">Save</string>
+    <string name="schedule_slots_a11y">Time slots of the day</string>
+    <string name="schedule_timeline_a11y">%1$s schedule, from 00:00 to 24:00</string>
+    <string name="schedule_start_time">Start time</string>
+    <string name="schedule_start_time_a11y">Start time %1$s. Change it</string>
+    <string name="schedule_temp_decrease">Lower the temperature</string>
+    <string name="schedule_temp_increase">Raise the temperature</string>
+    <string name="schedule_copy">Copy to other days</string>
+    <string name="schedule_copy_title">Copy %1$s to</string>
+    <string name="schedule_copy_weekdays">Weekdays</string>
+    <string name="schedule_copy_weekend">Weekend</string>
+    <string name="schedule_copy_all">All</string>
+    <string name="schedule_copy_none">Copy</string>
+    <plurals name="schedule_copy_action">
+        <item quantity="one">Copy to %d day</item>
+        <item quantity="other">Copy to %d days</item>
+    </plurals>
+    <plurals name="schedule_copied">
+        <item quantity="one">Copied to %d day</item>
+        <item quantity="other">Copied to %d days</item>
+    </plurals>
+    <string name="schedule_save_failed">Couldn\'t save %1$s</string>
+    <string name="schedule_discard_title">Discard changes?</string>
+    <string name="schedule_discard">Discard</string>
+    <string name="schedule_keep_editing">Keep editing</string>
+    <string name="schedule_unreadable_title">Can\'t read the schedule</string>
+    <string name="schedule_unreadable_body">Some day doesn\'t have the 6 time slots the app expects. Check it in Smart Life.</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string-array name="weekday_short">
+        <item>Mo</item><item>Tu</item><item>We</item><item>Th</item><item>Fr</item><item>Sa</item><item>Su</item>
+    </string-array>
+    <string-array name="weekday_long">
+        <item>Monday</item><item>Tuesday</item><item>Wednesday</item><item>Thursday</item><item>Friday</item><item>Saturday</item><item>Sunday</item>
+    </string-array>
+    <!-- El nom del dia dins d'una frase («Copia el dilluns a») -->
+    <string-array name="weekday_in_sentence">
+        <item>Monday</item><item>Tuesday</item><item>Wednesday</item><item>Thursday</item><item>Friday</item><item>Saturday</item><item>Sunday</item>
+    </string-array>
 </resources>

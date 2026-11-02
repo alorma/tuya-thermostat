@@ -37,7 +37,7 @@ sealed interface HomeEvent {
 /**
  * Pantalla principal (`disseny/docs/01-especificacio.md` § Ordres i sincronització):
  * - refresc cada 60 s amb l'app en primer pla ([refreshPeriodically]), en estirar ([refresh]) i quan es desen
- *   credencials noves ([configSaved]);
+ *   credencials noves o el programa setmanal ([savedChanges]);
  * - ordres optimistes: la UI canvia a l'instant i, si l'ordre falla, es reverteix i s'emet [HomeEvent.CommandFailed];
  * - −/+ s'agrupen 800 ms abans d'enviar-se, sempre dins `[min, max]`;
  * - mentre hi ha ordres pendents, els refrescos no trepitgen l'estat optimista;
@@ -49,7 +49,7 @@ class HomeViewModel(
   private val clock: Clock,
   private val setpointDebounce: Duration = SETPOINT_DEBOUNCE,
   private val syncDelay: Duration = SYNC_DELAY,
-  configSaved: Flow<Unit> = emptyFlow(),
+  savedChanges: Flow<Unit> = emptyFlow(),
 ) : ViewModel() {
   private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
   val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -70,9 +70,9 @@ class HomeViewModel(
   private val busy: Boolean get() = commandsInFlight > 0 || setpointBase != null
 
   init {
-    // S'han desat credencials noves a Configuració: el que s'estigués llegint amb les velles ja no val
+    // S'han desat credencials noves a Configuració (el que s'estigués llegint amb les velles ja no val) o el programa
     viewModelScope.launch {
-      configSaved.collect {
+      savedChanges.collect {
         loadJob?.cancel()
         load(pull = true)
       }

@@ -4,6 +4,7 @@ import com.alorma.caliu.domain.MinuteOfDay
 import com.alorma.caliu.domain.Mode
 import com.alorma.caliu.domain.ThermostatException
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.ZoneOffset
 import kotlin.time.Duration
@@ -106,5 +107,33 @@ class FakeThermostatRepositoryTest {
       val repository = repository()
       repository.failure = ThermostatException.Offline()
       repository.fetch()
+    }
+
+  @Test
+  fun `desa el programa d'un dia i el fa servir com a programa d'avui`() =
+    runTest {
+      val repository = repository()
+      val monday = FakeThermostatRepository.WeekendDay
+      repository.setDayProgram(DayOfWeek.MONDAY, monday)
+      assertEquals(monday, repository.weekProgram()[DayOfWeek.MONDAY])
+      assertEquals(FakeThermostatRepository.DefaultDay, repository.weekProgram()[DayOfWeek.TUESDAY])
+      // Dilluns 12:47: el tram de 11:00 a 14:00 a 20,5 °C
+      assertEquals(20.5, repository.fetch().setpoint, 0.0)
+    }
+
+  @Test
+  fun `un dia configurat per fallar no es desa`() =
+    runTest {
+      val repository = repository()
+      repository.failingDays = setOf(DayOfWeek.FRIDAY)
+      val result = runCatching { repository.setDayProgram(DayOfWeek.FRIDAY, FakeThermostatRepository.WeekendDay) }
+      assertTrue(result.exceptionOrNull() is ThermostatException.Api)
+      assertEquals(FakeThermostatRepository.DefaultDay, repository.weekProgram()[DayOfWeek.FRIDAY])
+    }
+
+  @Test(expected = IllegalArgumentException::class)
+  fun `no accepta un programa que no té 6 trams`() =
+    runTest {
+      repository().setDayProgram(DayOfWeek.MONDAY, FakeThermostatRepository.DefaultDay.take(4))
     }
 }

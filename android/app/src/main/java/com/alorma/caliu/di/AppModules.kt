@@ -20,9 +20,11 @@ import com.alorma.caliu.data.tuya.TuyaErrors
 import com.alorma.caliu.data.tuya.TuyaThermostatRepository
 import com.alorma.caliu.data.tuya.preloadedTuyaConfig
 import com.alorma.caliu.domain.PauseStore
+import com.alorma.caliu.domain.ProgramChanges
 import com.alorma.caliu.domain.ThermostatController
 import com.alorma.caliu.domain.ThermostatRepository
 import com.alorma.caliu.ui.home.HomeViewModel
+import com.alorma.caliu.ui.schedule.ScheduleViewModel
 import com.alorma.caliu.ui.settings.SettingsViewModel
 import com.alorma.caliu.widget.SnapshotStore
 import com.alorma.caliu.widget.WidgetUpdater
@@ -31,6 +33,7 @@ import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.merge
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -76,7 +79,7 @@ private val dataModule =
       if (BuildConfig.REAL_THERMOSTAT) {
         TuyaThermostatRepository(api = get(), errors = get(), clock = get())
       } else {
-        FakeThermostatRepository(clock = get())
+        FakeThermostatRepository(clock = get(), program = FakeThermostatRepository.DebugWeek)
       }
     }
     single<PauseStore> { DataStorePauseStore(androidContext()) }
@@ -84,12 +87,20 @@ private val dataModule =
     single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     single { SnapshotStore(androidContext().snapshotDataStore) }
     single { WidgetUpdater(context = androidContext(), store = get(), scope = get()) }
+    single { ProgramChanges() }
     single { ThermostatController(repository = get(), pauseStore = get(), observer = get<WidgetUpdater>()) }
   }
 
 private val uiModule =
   module {
-    viewModel { HomeViewModel(controller = get(), clock = get(), configSaved = get<CredentialsStore>().saved) }
+    viewModel {
+      HomeViewModel(
+        controller = get(),
+        clock = get(),
+        savedChanges = merge(get<CredentialsStore>().saved, get<ProgramChanges>().saved),
+      )
+    }
+    viewModel { ScheduleViewModel(repository = get(), clock = get(), programChanges = get()) }
     viewModel {
       SettingsViewModel(
         store = get(),

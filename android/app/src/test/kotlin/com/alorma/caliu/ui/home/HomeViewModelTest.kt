@@ -180,7 +180,7 @@ class HomeViewModelTest {
       val saved = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
       fake.failure = ThermostatException.MissingConfig()
       val viewModel =
-        HomeViewModel(ThermostatController(repository, InMemoryPauseStore()), clock, configSaved = saved)
+        HomeViewModel(ThermostatController(repository, InMemoryPauseStore()), clock, savedChanges = saved)
       viewModel.refresh()
       advanceUntilIdle()
       assertEquals(HomeUiState.MissingConfig, viewModel.uiState.value)

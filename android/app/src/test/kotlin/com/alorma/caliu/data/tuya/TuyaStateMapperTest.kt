@@ -3,6 +3,7 @@ package com.alorma.caliu.data.tuya
 import com.alorma.caliu.data.fake.FakeThermostatRepository
 import com.alorma.caliu.domain.MinuteOfDay
 import com.alorma.caliu.domain.Mode
+import com.alorma.caliu.domain.ScheduleSlot
 import java.time.Instant
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
@@ -15,6 +16,7 @@ import org.junit.Test
 class TuyaStateMapperTest {
   private val instant = Instant.parse("2026-11-02T12:47:00Z")
   private val program = "week_program_13_1"
+  private val previousProgram = "week_program_13_7"
   private val now = MinuteOfDay.of(12, 47)
 
   private val status: Map<String, JsonElement> =
@@ -35,6 +37,7 @@ class TuyaStateMapperTest {
       put("mode", JsonPrimitive(mode))
       workState?.let { put("work_state", JsonPrimitive(it)) }
       put(program, JsonPrimitive("AQAAAKoGHgDSCAAAyA4AAL4SAADSFh4Aqg=="))
+      put(previousProgram, JsonPrimitive("BwAAAKoGHgDSCAAAyA4AAL4SAADSFh4Aqg=="))
     }
 
   private fun map(
@@ -42,7 +45,7 @@ class TuyaStateMapperTest {
     properties: Map<String, JsonElement>,
     program: String,
     now: MinuteOfDay,
-  ) = TuyaStateMapper.map(status, properties, program, now, instant)
+  ) = TuyaStateMapper.map(status, properties, program, previousProgram, now, instant)
 
   @Test
   fun `auto llegeix escala, límits, programa i work_state`() {
@@ -57,6 +60,20 @@ class TuyaStateMapperTest {
     assertNull(state.override)
     assertNull(state.battery)
     assertEquals(FakeThermostatRepository.DefaultSchedule, state.schedule)
+  }
+
+  @Test
+  fun `la matinada d'avui surt de l'últim tram del programa d'ahir`() {
+    // Avui (dilluns) el programa real comença a les 06:15; ahir (diumenge) l'últim tram era a les 22:30 a 17,0 °C
+    val properties =
+      properties("auto") +
+        mapOf(
+          program to JsonPrimitive("AQYPANwNAADNDwAA3BEAAOYVAADcFy0AzQ=="),
+          previousProgram to JsonPrimitive("BwAAAKoGHgDSCAAAyA4AAL4SAADSFh4Aqg=="),
+        )
+    val schedule = map(status, properties, program, now).schedule
+    assertEquals(ScheduleSlot(MinuteOfDay.Midnight, MinuteOfDay.of(6, 15), 17.0), schedule.first())
+    assertEquals(7, schedule.size)
   }
 
   @Test
