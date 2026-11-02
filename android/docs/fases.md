@@ -271,15 +271,15 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
   pinta, com a previews, igual que la `02`).
 - ☐ Desar, amb permís, un canvi petit al dispositiu real, tornar-lo a llegir i comprovar-lo a Smart Life.
 
-**Per decidir abans de començar** (el handoff ho deixa «a verificar amb el dispositiu», i ja ho sabem):
+**Decidit** (el handoff ho deixa «a verificar amb el dispositiu»):
 
 - Trams per dia: el format en té sempre **6**, no 4.
 - Dies: el dispositiu desa **cada dia per separat** (7 DPs) i no agrupa feiners / cap de setmana, així que el selector
   mostra els 7 dies.
-- Primer tram: al dispositiu **no comença a les 00:00** (el programa real comença a les 06:15) i de 00:00 al primer tram
-  s'aplica l'últim del dia anterior. El handoff el fixa a 00:00 i no es pot moure. Cal triar entre mostrar els 6 trams
-  del dispositiu tots amb hora editable (la barra de 24 h pinta de 00:00 al primer tram amb el color de l'últim) o fixar
-  el primer a 00:00, que canviaria el programa que hi ha ara.
+- Primer tram (decisió de l'usuari, 2026-11-02): es mostren els 6 trams del dispositiu i **tots tenen l'hora editable**,
+  de 00:00 a 23:59 (el programa real comença a les 06:15). Cada hora ha d'anar entre la del tram anterior i la del
+  següent. De 00:00 al primer tram s'aplica l'últim tram del dia anterior, i la barra de 24 h pinta aquest tros amb el
+  color de l'últim. No hi ha cap tram fix a les 00:00 com al handoff.
 
 **Validació:** tests JVM i de captures, ktlint, provar-ho a l'emulador amb el termòstat simulat i, amb permís, una
 escriptura real comprovada a Smart Life.
