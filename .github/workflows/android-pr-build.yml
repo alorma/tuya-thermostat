@@ -1,6 +1,6 @@
 name: Android PR Build
 
-# Comprova ktlint i que l'APK de debug i el release es construeixen, sense pujar res
+# Comprova ktlint, els tests (JVM i captures) i que l'APK de debug i el release es construeixen, sense pujar res
 on:
   pull_request:
     paths:
@@ -35,6 +35,22 @@ jobs:
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Validate screenshots
+        run: ./gradlew validateDebugScreenshotTest
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            android/*/build/reports/tests/
+            android/*/build/reports/screenshotTest/
+          retention-days: 7
 
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug
