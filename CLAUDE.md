@@ -48,12 +48,12 @@ There are no tests. The only linter is ktlint in the Android project.
   - `/v2.0/cloud/thing/{id}/shadow/properties` (read) and `.../shadow/properties/issue` (write, body `{"properties": "<JSON string>"}`) expose the full device model: `mode` ∈ `home|auto|temporary`, `work_state`, `week_program_13_*`, `dormant_*`. Use v2 for anything outside the basic set.
 - `work_state` (`heating`/`stop`) and the weekly program only appear through the v2 properties endpoint, not `/v1.0/.../status`.
 - **Mode:** `home` is manual and `auto` follows the weekly program. `temporary` means the user changed the setpoint while in auto; it is expected to last until the next program slot. The app treats `temporary` as auto.
-- **Weekly program:** `week_program_13_1` … `_7` (assumed 1 = Monday). Each is a raw base64 value laid out as `[day, count, (hour, minute, temp×10 as uint16 BE) × count]`. The device uses 6 slots per day. Decoding is in `ScheduleSlot.decode`.
+- **Weekly program:** `week_program_13_1` … `_7` (assumed 1 = Monday). Each is a raw base64 value of exactly 25 bytes: `[day, (hour, minute, temp×10 as uint16 BE) × 6]`. There is **no slot-count byte**; adding one shifts every field and the Smart Life app shows garbage like `220:13 | 0.0°C`. Decoding is in `ScheduleSlot.decode`. After writing, check in the Smart Life app, not only by reading the value back.
 - Temperatures are integers ×10 (`temp_set` 220 = 22.0 °C).
 - `temp_correction` is intentionally set to -20 (-2 °C), because the thermostat sits near the router and TV. Don't reset it.
 - **Device logs:** `/v1.0/devices/{id}/logs`, or `tinytuya.Cloud.getdevicelog`, which handles paging. Log queries are rate-limited (`40000309`), so space them out.
   - Event types: 1 = online, 5 = command, 7 = DP report, 8 = signal.
-  - `event_from` values: `1` = device (physical buttons or LAN), `2` = Smart Life app, `3` = third-party integration, `4` = cloud scene/automation/timer, `cloud2cloud` = this project's own OpenAPI calls.
+  - `event_from` values: `1` = device (physical buttons or LAN), `2` = Smart Life app, `3` = third-party integration, `4` = cloud scene/automation/timer, `cloud2cloud` = this project's v1 command calls, `caesar` = this project's v2 property writes.
 - Timer/schedule APIs (`/v1.0/devices/{id}/timers`) are not subscribed for this cloud project.
 
 Writing device state (setpoint, mode, program) affects a real home's heating, so confirm with the user before doing it.

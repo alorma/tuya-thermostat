@@ -75,14 +75,11 @@ struct ScheduleSlot: Equatable, Identifiable {
     var id: Int { minute }
     var time: String { String(format: "%02d:%02d", minute / 60, minute % 60) }
 
-    /// Format raw de week_program_13_N: [dia, n, (hora, minut, temp×10 en 2 bytes) × n]
+    /// Format raw de week_program_13_N: [dia, (hora, minut, temp×10 en 2 bytes BE) × 6]. No hi ha byte de recompte.
     static func decode(base64: String) -> [ScheduleSlot] {
-        guard let data = Data(base64Encoded: base64), data.count >= 2 else { return [] }
+        guard let data = Data(base64Encoded: base64), data.count >= 5 else { return [] }
         let bytes = [UInt8](data)
-        let count = Int(bytes[1])
-        return (0..<count).compactMap { i in
-            let o = 2 + i * 4
-            guard o + 3 < bytes.count else { return nil }
+        return stride(from: 1, to: bytes.count - 3, by: 4).map { o in
             let temp = Int(bytes[o + 2]) << 8 | Int(bytes[o + 3])
             return ScheduleSlot(minute: Int(bytes[o]) * 60 + Int(bytes[o + 1]), target: Double(temp) / 10)
         }
