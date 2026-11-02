@@ -139,7 +139,8 @@ handoff fan servir Inter i icones aproximades).
 - ☑ Precarregar les credencials en debug: `BuildConfig` llegeix `TUYA_*` de les variables d'entorn (GitHub Secrets al CI) o
   de `local.properties`, igual que la funció `secret()` de Converses. Només a la debug. (Fet a la fase 3, per poder fer
   la lectura real.)
-- ☑ Passar els secrets `TUYA_*` com a `env` al pas de build de `android-build-apk.yml`.
+- ☑ ~~Passar els secrets `TUYA_*` al CI~~. Es va fer i després es va treure: el repo passa a ser públic i l'APK del CI
+  no ha de portar credencials (2026-11-02).
 - ☑ Tests de captures `12`–`14`, més la prova en curs (`12b`, sense captura al handoff).
 
 **Notes (2026-11-02):**
@@ -214,13 +215,13 @@ text pla al DataStore.
 Decisió de l'usuari (2026-11-02): no hi ha release, ni botiga, ni Firebase. Caliu es distribueix com l'APK de debug
 que construeix el CI.
 
-- ☑ `android-build-apk.yml`, a cada push a `main`: ktlint, tests JVM, validació de captures i `assembleDebug` amb les
-  credencials de Tuya dels secrets del repo (`TUYA_ACCESS_ID`, `TUYA_ACCESS_SECRET`, `TUYA_REGION`, `TUYA_DEVICE_ID`, ja
-  posats). L'APK es puja com a artifact `caliu-debug`.
+- ☑ `android-build-apk.yml`, a cada push a `main`: ktlint, tests JVM, validació de captures i `assembleDebug`. L'APK es
+  puja com a artifact `caliu-debug`. **No porta credencials:** el repo és públic i qualsevol pot baixar els artifacts.
+  S'entren una sola vegada a Configuració.
 - ☑ Com que la keystore de debug és compartida (`certs/debug.keystore`), cada APK nou s'instal·la a sobre de l'anterior.
 - ☑ Els tests i les captures també corren a les PR (`android-pr-build.yml`).
 
-- ☑ L'APK del CI parla amb el termòstat **real** (`CALIU_REAL_THERMOSTAT=true` al workflow). La debug local continua
+- ☑ L'APK del CI parla amb el termòstat **real** si la variable del repo `CALIU_REAL_THERMOSTAT` és `true` (ja posada). La debug local continua
   fent servir el simulat si no es posa `caliu.realThermostat=true` a `local.properties`. Les PR construeixen sense
   secrets ni termòstat real.
 

@@ -55,16 +55,13 @@ jobs:
             android/*/build/reports/screenshotTest/
           retention-days: 7
 
-      # L'APK del CI és el que es fa servir a casa: termòstat real i credencials de Tuya precarregades (BuildConfig),
-      # des dels secrets del repo
+      # L'APK del CI és el que es fa servir a casa: parla amb el termòstat real si la variable del repo
+      # CALIU_REAL_THERMOSTAT és `true`. No porta credencials (el repo és públic i els artifacts es poden baixar):
+      # s'entren una vegada a Configuració i es mantenen en instal·lar els APK següents
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug
         env:
-          CALIU_REAL_THERMOSTAT: "true"
-          TUYA_ACCESS_ID: ${{ secrets.TUYA_ACCESS_ID }}
-          TUYA_ACCESS_SECRET: ${{ secrets.TUYA_ACCESS_SECRET }}
-          TUYA_REGION: ${{ secrets.TUYA_REGION }}
-          TUYA_DEVICE_ID: ${{ secrets.TUYA_DEVICE_ID }}
+          CALIU_REAL_THERMOSTAT: ${{ vars.CALIU_REAL_THERMOSTAT }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v7

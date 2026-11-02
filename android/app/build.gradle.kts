@@ -8,8 +8,8 @@ plugins {
   alias(libs.plugins.compose.screenshot)
 }
 
-// Credencials de Tuya per a la debug: de `local.properties` en local i de les variables d'entorn (GitHub Secrets) al CI.
-// Si no n'hi ha, queden buides i l'app mostra «Falta la configuració»
+// Credencials de Tuya precarregades a la debug local, des de `local.properties` (o de l'entorn). El CI no les hi posa,
+// perquè el repo és públic i l'APK es pot baixar. Si no n'hi ha, queden buides i l'app mostra «Falta la configuració»
 val localProperties =
   Properties().apply {
     val file = rootProject.file("local.properties")
@@ -22,7 +22,7 @@ fun String.quoted() = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 // La debug fa servir el termòstat simulat si no es demana explícitament el real, perquè les proves no toquin la
 // calefacció de casa. Es demana amb `caliu.realThermostat=true` a `local.properties` o amb `CALIU_REAL_THERMOSTAT=true`
-// a l'entorn; el CI ho fa, perquè l'APK que construeix és el que es fa servir de debò
+// a l'entorn; el CI ho fa (variable del repo), perquè el seu APK és el que es fa servir de debò
 val realThermostatInDebug =
   (System.getenv("CALIU_REAL_THERMOSTAT") ?: localProperties.getProperty("caliu.realThermostat")).toBoolean()
 

@@ -37,7 +37,7 @@ Queda fora de l'abast:
 | Tipografia | Roboto Flex (la mateixa `.ttf` de Converses) i Nunito, totes dues a `res/font` amb llicència OFL. No es fan servir Downloadable Fonts. |
 | Icones | Material Symbols Rounded, importades com a vector drawables a `:designsystem` (unes 15). `material-icons-extended` són Material Icons, no Symbols. |
 | Tests | Tests JVM per a la signatura, el decodificador del programa, la fórmula de la pausa, el càlcul del mood i els ViewModels. Tests de captures de Compose per a cada captura del handoff, en clar i fosc. |
-| Termòstat simulat | `FakeThermostatRepository` (a `data/fake`) implementa `ThermostatRepository` en memòria, sense xarxa: segueix el programa, crea canvis temporals que caduquen al tram següent, apaga, i la temperatura s'acosta a la consigna a cada lectura. Amb `failure` es força qualsevol error. La debug el fa servir per defecte, perquè les proves no toquin mai la calefacció: el repositori real (`TuyaThermostatRepository`) només s'hi connecta amb `caliu.realThermostat=true` a `local.properties` o `CALIU_REAL_THERMOSTAT=true` a l'entorn, que és el que fa el CI de `main` (el seu APK és el que es fa servir a casa). La release sempre fa servir el real. |
+| Termòstat simulat | `FakeThermostatRepository` (a `data/fake`) implementa `ThermostatRepository` en memòria, sense xarxa: segueix el programa, crea canvis temporals que caduquen al tram següent, apaga, i la temperatura s'acosta a la consigna a cada lectura. Amb `failure` es força qualsevol error. La debug el fa servir per defecte, perquè les proves no toquin mai la calefacció: el repositori real (`TuyaThermostatRepository`) només s'hi connecta amb `caliu.realThermostat=true` a `local.properties` o `CALIU_REAL_THERMOSTAT=true` a l'entorn, que és el que fa el CI de `main` amb la variable del repo (el seu APK és el que es fa servir a casa). La release sempre fa servir el real. |
 | Escriptura al dispositiu | Escriure afecta la calefacció de casa. Les proves contra el dispositiu real es demanen abans a l'usuari, com diu el `CLAUDE.md` de l'arrel. |
 
 ### API de Material 3 Expressive comprovades a la 1.5.0-beta01
@@ -75,9 +75,8 @@ macOS (`macOS/Sources/TuyaClient.swift`) i pel `CLAUDE.md` de l'arrel, i **mana 
 - **Idiomes:** l'anglès és l'idioma per defecte (`values/`) i el català va a `values-ca/`. Es pot canviar l'idioma de
   l'app des d'Info de l'app (`locales_config` amb `en` i `ca`). Es treu l'espanyol de l'esquelet. Els textos catalans del
   handoff (`disseny/android/strings.xml`) són la referència per a `values-ca/`, i l'anglès es tradueix a partir d'aquests.
-- **Credencials precarregades:** la debug omple la configuració des de `local.properties` en local i des dels GitHub
-  Secrets al CI (`TUYA_ACCESS_ID`, `TUYA_ACCESS_SECRET`, `TUYA_REGION`, `TUYA_DEVICE_ID`), via `BuildConfig`. Si no n'hi
-  ha, els camps queden buits. El repo és privat, però l'APK de debug porta aquests valors en clar: només s'han de posar a
-  la debug, mai a la release.
+- **Credencials precarregades:** només a la debug local, des de `local.properties` via `BuildConfig`. Al principi
+  també les posava el CI des dels GitHub Secrets, però es va treure el 2026-11-02 perquè el repo passa a ser públic i
+  els artifacts (l'APK, amb els valors en clar) es poden baixar. A l'APK del CI s'entren una vegada a Configuració.
 - **Keystore de debug compartida** a `certs/debug.keystore`, com a Converses, perquè els APK del CI s'instal·lin a sobre.
 - **Nom a la rajola i als widgets:** «Termòstat» en català i «Thermostat» en anglès. El launcher es diu «Caliu».
