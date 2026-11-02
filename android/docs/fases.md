@@ -306,6 +306,12 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
 - «Edita» surt sempre en automàtic, també apagat o en pausa: el programa es pot preparar igualment.
 - El full «Copia el … a» i el selector d'hora es pinten a mà a les captures (`19-programa-copy`, `-time`), perquè
   layoutlib no pinta les finestres. A l'app són `ModalBottomSheet` i `TimePickerDialog` amb el `TimePicker` rodó (dial de 24 h), a petició de l'usuari.
+- Provat al Pixel 8a (2026-11-02) amb el simulat: editar, copiar, desar, sortir amb canvis i la validació de les hores
+  (un tram no pot començar dins de l'anterior ni del següent). El selector d'hora és el rodó, a petició de l'usuari.
+- Escriptura real (2026-11-02, amb permís): diumenge 23:45 de 20,5 a 21,0 °C des de l'app.  Smart Life ho mostrava bé, i després es va tornar a 20,5 °C (valor idèntic a l'original). Només ha canviat
+  `week_program_13_7`, en un sol camp, i el valor continua fent 25 bytes. Dues coses noves: escriure el programa treu
+  el mode `temporary` (el dispositiu torna a `auto`), i just després de desar el núvol encara retorna el valor vell.
+  Per això la principal torna a llegir al cap de 2 s.
 - Pendent per a la prova final: a l'emulador amb el simulat, editar hores i temperatures, copiar, desar (també amb un
   dia que falli), sortir amb canvis i comprovar que la principal mostra el programa nou. Després, **amb permís**, un
   canvi petit al dispositiu real comprovat a Smart Life.

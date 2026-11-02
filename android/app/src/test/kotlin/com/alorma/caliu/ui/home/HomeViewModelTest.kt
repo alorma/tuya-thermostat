@@ -13,6 +13,7 @@ import com.alorma.caliu.testing.MutableClock
 import com.alorma.caliu.testing.RecordingRepository
 import java.time.Instant
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
@@ -190,6 +191,28 @@ class HomeViewModelTest {
       advanceUntilIdle()
 
       assertTrue(viewModel.uiState.value is HomeUiState.Content)
+    }
+
+  @Test
+  fun `quan es desa el programa es llegeix ara i un altre cop al cap de 2 s`() =
+    runTest(mainDispatcherRule.dispatcher) {
+      val saved = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+      var fetches = 0
+      val counting =
+        object : ThermostatRepository by repository {
+          override suspend fun fetch(): ThermostatState = repository.fetch().also { fetches++ }
+        }
+      val viewModel = HomeViewModel(ThermostatController(counting, InMemoryPauseStore()), clock, savedChanges = saved)
+      viewModel.refresh()
+      advanceUntilIdle()
+      fetches = 0
+
+      saved.emit(Unit)
+      runCurrent()
+      assertEquals(1, fetches)
+      advanceTimeBy(HomeViewModel.SYNC_DELAY + 1.milliseconds)
+      runCurrent()
+      assertEquals(2, fetches)
     }
 
   @Test

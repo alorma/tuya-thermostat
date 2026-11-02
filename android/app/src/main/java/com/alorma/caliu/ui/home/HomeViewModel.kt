@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -71,10 +72,13 @@ class HomeViewModel(
 
   init {
     // S'han desat credencials noves a Configuració (el que s'estigués llegint amb les velles ja no val) o el programa
+    // El núvol de Tuya triga una mica a tornar el valor nou: es llegeix ara i un altre cop al cap de [syncDelay]
     viewModelScope.launch {
-      savedChanges.collect {
+      savedChanges.collectLatest {
         loadJob?.cancel()
-        load(pull = true)
+        load(pull = true).join()
+        delay(syncDelay)
+        load(pull = false)
       }
     }
   }
