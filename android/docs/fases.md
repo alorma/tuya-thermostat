@@ -166,11 +166,24 @@ text pla al DataStore.
 
 ## Fase 6 · Widgets (Glance)
 
-- ☐ Un `GlanceTheme` amb `ColorProviders` derivats de `moodPalette` (el color hero del mood).
-- ☐ Widget petit 2×1: la icona d'estat dins un quadrat arrodonit i la temperatura actual.
-- ☐ Widget mitjà 4×2: la temperatura, el xip d'estat, −/+ amb la consigna (amb `ActionCallback`) i el tram actiu quan
+- ☑ Un `GlanceTheme` amb `ColorProviders` derivats de `moodPalette` (el color hero del mood).
+- ☑ Widget petit 2×1: la icona d'estat dins un quadrat arrodonit i la temperatura actual.
+- ☑ Widget mitjà 4×2: la temperatura, el xip d'estat, −/+ amb la consigna (amb `ActionCallback`) i el tram actiu quan
   està en automàtic.
-- ☐ Actualització: en cada refresc de l'app, i amb WorkManager periòdic de 15 min. Tocar el widget obre l'app.
+- ☑ Actualització: en cada refresc de l'app, i amb WorkManager periòdic de 15 min. Tocar el widget obre l'app.
+
+**Notes (2026-11-02):**
+
+- Cada lectura de l'estat (la de l'app, la del refresc periòdic, la de la rajola o la del widget) passa per
+  `ThermostatController`, que l'envia a un `ThermostatObserver`. El `WidgetUpdater` la desa a `SnapshotStore` (DataStore)
+  i torna a pintar els widgets, que sempre es pinten amb aquest últim estat i no esperen la xarxa.
+- WorkManager (15 min, amb xarxa) s'engega amb el primer widget i s'atura amb l'últim. Quan s'afegeix un widget també
+  es fa una lectura immediata.
+- −/+ del widget (`StepSetpointAction`): canvi optimista, envia `temp_set` sense debounce (cada toc és una ordre), torna
+  enrere si falla i torna a llegir al cap de 2 s. Apagat o en pausa no fan res.
+- `withTarget` i `steppedTarget` són ara al domini, compartits amb el `HomeViewModel`.
+- Previews de Glance a `WidgetPreviews.kt`. No hi ha tests de captures: el plugin de Compose no pinta Glance.
+- Pendent per a la prova final: afegir els dos widgets a l'emulador i comparar-los amb la captura `15` en clar i fosc.
 
 **Validació:** comparar amb la captura `15` en clar i fosc, i comprovar que −/+ des del widget funciona (amb permís).
 

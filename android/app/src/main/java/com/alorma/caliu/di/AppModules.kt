@@ -22,8 +22,13 @@ import com.alorma.caliu.domain.ThermostatController
 import com.alorma.caliu.domain.ThermostatRepository
 import com.alorma.caliu.ui.home.HomeViewModel
 import com.alorma.caliu.ui.settings.SettingsViewModel
+import com.alorma.caliu.widget.SnapshotStore
+import com.alorma.caliu.widget.WidgetUpdater
 import java.time.Clock
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -31,6 +36,8 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 private const val TIMEOUT_SECONDS = 15L
+
+private val Context.snapshotDataStore: DataStore<Preferences> by preferencesDataStore(name = SnapshotStore.FILE_NAME)
 
 private val Context.credentialsDataStore: DataStore<Preferences> by preferencesDataStore(
   name = DataStoreCredentialsStore.FILE_NAME,
@@ -66,7 +73,11 @@ private val dataModule =
       }
     }
     single<PauseStore> { DataStorePauseStore(androidContext()) }
-    single { ThermostatController(repository = get(), pauseStore = get()) }
+    // Feina que ha de sobreviure a les pantalles (desar l'estat per als widgets)
+    single { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
+    single { SnapshotStore(androidContext().snapshotDataStore) }
+    single { WidgetUpdater(context = androidContext(), store = get(), scope = get()) }
+    single { ThermostatController(repository = get(), pauseStore = get(), observer = get<WidgetUpdater>()) }
   }
 
 private val uiModule =

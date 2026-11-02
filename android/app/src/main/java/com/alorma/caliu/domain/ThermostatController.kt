@@ -15,9 +15,15 @@ import kotlin.math.max
 class ThermostatController(
   private val repository: ThermostatRepository,
   private val pauseStore: PauseStore,
+  private val observer: ThermostatObserver = ThermostatObserver {},
 ) {
-  /** Estat del dispositiu amb la pausa aplicada. Si algú ha canviat la consigna des de fora, la pausa s'abandona. */
-  suspend fun state(): ThermostatState {
+  /**
+   * Estat del dispositiu amb la pausa aplicada. Si algú ha canviat la consigna des de fora, la pausa s'abandona.
+   * Cada lectura correcta s'envia a [observer] (els widgets i la rajola).
+   */
+  suspend fun state(): ThermostatState = read().also(observer::onState)
+
+  private suspend fun read(): ThermostatState {
     val device = repository.fetch()
     val pause = pauseStore.get() ?: return device
     val abandoned =
@@ -64,7 +70,7 @@ class ThermostatController(
 
   /** Alterna la pausa, per a la rajola: en pausa, activa; si no, pausa. */
   suspend fun togglePause() {
-    val state = state()
+    val state = read()
     if (state.paused) activate(state) else pause(state)
   }
 
@@ -108,3 +114,25 @@ fun ThermostatState.targetAt(now: MinuteOfDay): Double =
     Mode.MANUAL -> setpoint
     Mode.AUTO -> override?.setpoint ?: schedule.activeSlotIndex(now)?.let { schedule[it].setpoint } ?: setpoint
   }
+
+/**
+ * L'estat després de demanar la consigna [target] a les [now]: en manual canvia la consigna; en automàtic crea (o mou)
+ * el canvi temporal fins al final del tram actiu, com fa el dispositiu.
+ */
+fun ThermostatState.withTarget(
+  target: Double,
+  now: MinuteOfDay,
+): ThermostatState =
+  when (mode) {
+    Mode.MANUAL -> copy(setpoint = target)
+    Mode.AUTO -> {
+      val until = schedule.activeSlotIndex(now)?.let { schedule[it].end } ?: MinuteOfDay.EndOfDay
+      copy(setpoint = target, override = Override(until = until, setpoint = target))
+    }
+  }
+
+/** La consigna següent amb −/+ ([steps] passos de 0,5), dins de `[min, max]`. */
+fun ThermostatState.steppedTarget(
+  now: MinuteOfDay,
+  steps: Int,
+): Double = (targetAt(now) + steps * ThermostatState.SETPOINT_STEP).coerceIn(minSetpoint, maxSetpoint)

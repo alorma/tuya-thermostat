@@ -68,6 +68,7 @@ macOS (`macOS/Sources/TuyaClient.swift`) i pel `CLAUDE.md` de l'arrel, i **mana 
 | Targeta hero de 134 dp | Les mètriques de Nunito fan la línia de 100 sp més alta | La targeta té l'alçada fixa i la xifra hi queda centrada. |
 | Bateria horitzontal a les captures | Les `battery_*` de Material Symbols són verticals | Es fan servir les verticals que es van importar a la fase 0. |
 | `moodColorScheme` no fixa `surfaceVariant`, `surfaceTint` ni `inverseSurface` | Es quedarien amb el lila de M3 | Es deriven del mood: `cardHigh`, `primary` i `onSurface`/`card` (Snackbar). |
+| Xifres dels widgets en Nunito | Glance (RemoteViews) només pot fer servir les fonts del sistema | Els widgets fan servir sans-serif negreta. |
 
 ## Decisions de l'usuari (2026-11-01)
 

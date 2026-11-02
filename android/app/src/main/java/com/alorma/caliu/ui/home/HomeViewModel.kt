@@ -4,12 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alorma.caliu.domain.MinuteOfDay
 import com.alorma.caliu.domain.Mode
-import com.alorma.caliu.domain.Override
 import com.alorma.caliu.domain.ThermostatController
 import com.alorma.caliu.domain.ThermostatException
 import com.alorma.caliu.domain.ThermostatState
-import com.alorma.caliu.domain.activeSlotIndex
+import com.alorma.caliu.domain.steppedTarget
 import com.alorma.caliu.domain.targetAt
+import com.alorma.caliu.domain.withTarget
 import java.time.Clock
 import java.time.LocalTime
 import kotlin.time.Duration
@@ -147,16 +147,16 @@ class HomeViewModel(
     )
   }
 
-  fun increase() = step(+ThermostatState.SETPOINT_STEP)
+  fun increase() = step(+1)
 
-  fun decrease() = step(-ThermostatState.SETPOINT_STEP)
+  fun decrease() = step(-1)
 
-  private fun step(delta: Double) {
+  private fun step(steps: Int) {
     val content = content() ?: return
     val state = content.state
     if (!state.power || state.paused) return
     val current = state.targetAt(content.now)
-    val target = (current + delta).coerceIn(state.minSetpoint, state.maxSetpoint)
+    val target = state.steppedTarget(content.now, steps)
     if (target == current) return
 
     if (setpointBase == null) setpointBase = state
@@ -172,19 +172,10 @@ class HomeViewModel(
       }
   }
 
-  /** En manual canvia la consigna; en automàtic crea (o mou) el canvi temporal fins al final del tram. */
   private fun withTarget(
     state: ThermostatState,
     target: Double,
-  ): ThermostatState =
-    when (state.mode) {
-      Mode.MANUAL -> state.copy(setpoint = target)
-      Mode.AUTO -> {
-        val now = now()
-        val until = state.schedule.activeSlotIndex(now)?.let { state.schedule[it].end } ?: MinuteOfDay.EndOfDay
-        state.copy(setpoint = target, override = Override(until = until, setpoint = target))
-      }
-    }
+  ): ThermostatState = state.withTarget(target, now())
 
   private fun command(
     optimistic: (ThermostatState) -> ThermostatState,

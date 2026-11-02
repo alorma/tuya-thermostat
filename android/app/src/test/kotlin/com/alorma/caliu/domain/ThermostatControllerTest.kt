@@ -135,4 +135,43 @@ class ThermostatControllerTest {
       controller.togglePause()
       assertFalse(controller.state().paused)
     }
+
+  @Test
+  fun `cada lectura arriba a l'observador amb la pausa aplicada`() =
+    runTest {
+      val seen = mutableListOf<ThermostatState>()
+      val observed = ThermostatController(repository, pauseStore) { seen += it }
+
+      observed.pause(observed.state())
+      observed.state()
+
+      assertEquals(2, seen.size)
+      assertTrue(seen.last().paused)
+    }
+
+  @Test
+  fun `una consigna nova en automàtic crea el canvi temporal fins al final del tram`() =
+    runTest {
+      val now = MinuteOfDay.of(12, 47)
+      val state = controller.state()
+
+      val target = state.steppedTarget(now, steps = 1)
+      val changed = state.withTarget(target, now)
+
+      assertEquals(20.5, target, 0.0)
+      assertEquals(Override(until = MinuteOfDay.of(14), setpoint = 20.5), changed.override)
+      assertEquals(20.5, changed.targetAt(now), 0.0)
+    }
+
+  @Test
+  fun `en manual només canvia la consigna i no passa del màxim`() =
+    runTest {
+      val now = MinuteOfDay.of(12, 47)
+      val state = controller.state().copy(mode = Mode.MANUAL, setpoint = 35.0)
+
+      assertEquals(35.0, state.steppedTarget(now, steps = 1), 0.0)
+      val changed = state.withTarget(21.0, now)
+      assertEquals(21.0, changed.setpoint, 0.0)
+      assertNull(changed.override)
+    }
 }
