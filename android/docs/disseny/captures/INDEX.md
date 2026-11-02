@@ -20,3 +20,10 @@ Tipografia i icones substitutes (Inter i icones Material aproximades); colors, m
 | `13-config-prova-ok` | Provar connexió: correcta |
 | `14-config-prova-error` | Provar connexió: error |
 | `15-widgets-i-rajola` | Widgets 2×1 i 4×2 i rajola de configuració ràpida, en clar i fosc |
+| `16-wear-os` | Wear OS: app (escalfant, en pausa, llista), tile, complicacions i estat sense configurar |
+| `17-android-auto` | Android Auto: GridTemplate en actiu i en pausa |
+| `18-icona` | Icona adaptativa, màscares del llançador, icona temàtica i Wear |
+| `19-programa-edit` | Programa setmanal: selector de dia, barra de 24 h i 6 trams |
+| `19-programa-copy` | Full inferior «Copia el dilluns a» amb dies i dreceres |
+| `19-programa-time` | Selector d'hora d'inici d'un tram |
+| `19-programa-copied` | Després de copiar: dies marcats com a modificats i Snackbar |

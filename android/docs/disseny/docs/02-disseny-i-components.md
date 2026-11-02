@@ -74,6 +74,13 @@
 | Camps | `TextField` (filled) dins targetes connectades; secret amb `SecureTextField` o `TextField` + `VisualTransformation` i `IconButton` visibilitat | |
 | Regió | `ButtonGroup` connectat amb `ToggleButton` | EU · US · CN · IN |
 | Provar connexió | `FilledTonalButton` amb icona; resultat en `Card` (èxit: hero de «calm»; error: `errorContainer`) | Durant la prova: `LoadingIndicator` petit |
+| Programa · barra | `LargeFlexibleTopAppBar` amb `arrow_back` i `Button("Desa")` | Com Configuració |
+| Programa · selector de dia | `ButtonGroup` connectat amb 7 `ToggleButton` | Avui: vora `outline`; modificat: punt `primary` (`BadgedBox`/`Badge` petit) |
+| Programa · barra de 24 h | `Canvas`/`Row` de `Box`es amb pesos proporcionals | Element visual, no interactiu |
+| Programa · trams | `Card` amb `ListItem`: hora en `FilledTonalButton` píndola, temperatura amb `FilledTonalIconButton` −/+ | |
+| Programa · hora | `TimePickerDialog` amb `TimePicker` (`is24Hour = true`) | |
+| Programa · copiar | `FilledTonalButton` → `ModalBottomSheet` amb `ToggleButton`s de dia (multiselecció), `FilterChip`/`AssistChip` per a les dreceres, `TextButton` + `Button` | |
+| Programa · confirmació de sortida | `AlertDialog` | |
 | Widgets | Jetpack **Glance** (`GlanceAppWidget`, `GlanceTheme` amb `ColorProviders` derivats d'`Color.kt`) | Glance no té M3E: fer servir els seus `Box/Row/Text/Image`, `CircleIconButton`/`SquareIconButton` |
 | Rajola | `TileService` | `Tile.label`, `Tile.subtitle`, `Tile.state` |
 

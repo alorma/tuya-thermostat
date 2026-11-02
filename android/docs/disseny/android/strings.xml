@@ -71,6 +71,42 @@
     <string name="config_test_ok">Connexió correcta</string>
     <string name="config_test_error">No s\'ha pogut connectar</string>
 
+    <!-- Programa setmanal -->
+    <string name="schedule_edit">Edita</string>
+    <string name="schedule_title">Programa</string>
+    <string name="schedule_save">Desa</string>
+    <string name="schedule_slots_a11y">Trams del dia</string>
+    <string name="schedule_start_time">Hora d\'inici</string>
+    <string name="schedule_start_time_a11y">Hora d\'inici %1$s. Canvia-la</string>
+    <string name="schedule_temp_decrease">Baixa la temperatura</string>
+    <string name="schedule_temp_increase">Puja la temperatura</string>
+    <string name="schedule_copy">Copia a altres dies</string>
+    <string name="schedule_copy_title">Copia el %1$s a</string>
+    <string name="schedule_copy_weekdays">Feiners</string>
+    <string name="schedule_copy_weekend">Cap de setmana</string>
+    <string name="schedule_copy_all">Tots</string>
+    <string name="schedule_copy_none">Copia</string>
+    <plurals name="schedule_copy_action">
+        <item quantity="one">Copia a %d dia</item>
+        <item quantity="other">Copia a %d dies</item>
+    </plurals>
+    <plurals name="schedule_copied">
+        <item quantity="one">Copiat a %d dia</item>
+        <item quantity="other">Copiat a %d dies</item>
+    </plurals>
+    <string name="schedule_save_failed">No s\'ha pogut desar el %1$s</string>
+    <string name="schedule_discard_title">Descartar els canvis?</string>
+    <string name="schedule_discard">Descarta</string>
+    <string name="schedule_keep_editing">Continua editant</string>
+    <string name="action_cancel">Cancel·la</string>
+    <string name="action_ok">D\'acord</string>
+    <string-array name="weekday_short">
+        <item>Dl</item><item>Dt</item><item>Dc</item><item>Dj</item><item>Dv</item><item>Ds</item><item>Dg</item>
+    </string-array>
+    <string-array name="weekday_long">
+        <item>Dilluns</item><item>Dimarts</item><item>Dimecres</item><item>Dijous</item><item>Divendres</item><item>Dissabte</item><item>Diumenge</item>
+    </string-array>
+
     <!-- Widgets i rajola -->
     <string name="tile_label">Termòstat</string>
     <string name="tile_subtitle">%1$s · %2$s</string>

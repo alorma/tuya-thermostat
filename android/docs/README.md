@@ -4,7 +4,8 @@ App d'Android per controlar l'únic termòstat de casa (R11, Tuya Cloud). S'obre
 onboarding, comptes ni llista de dispositius.
 
 - `disseny/` conté el paquet de Claude Design tal com va arribar: especificació, components, notes de Tuya, colors,
-  tipografia, textos, tokens i 29 captures. **És la font de veritat del disseny.** No s'edita: si cal desviar-se'n,
+  tipografia, textos, tokens, icona i 40 captures. La versió actual és la del 2026-11-02, que hi
+  afegeix el programa setmanal, Wear OS, Android Auto i la icona. **És la font de veritat del disseny.** No s'edita: si cal desviar-se'n,
   s'apunta a la secció «Diferències» d'aquí sota.
 - `fases.md` recull les fases d'implementació, amb els passos i com es valida cadascuna.
 
@@ -14,14 +15,16 @@ Està dins l'abast:
 
 - La pantalla principal, amb tots els estats de les captures `01`–`11`.
 - La pantalla de configuració (captures `12`–`14`).
+- El programa setmanal (captures `19-programa-*`), des del botó «Edita» de la pantalla principal.
+- La icona adaptativa (captura `18`).
 - Dos widgets Glance (2×1 i 4×2) i una rajola de configuració ràpida (captura `15`).
 - La distribució com a APK de debug des del CI de GitHub (artifact `caliu-debug`). No hi ha release ni botiga.
 
 Queda fora de l'abast:
 
-- Editar el programa setmanal. Només es mostra el programa d'avui i se'n pot canviar el tram actiu, cosa que crea un canvi
-  temporal.
-- Més d'un dispositiu, Google Play, Firebase App Distribution i Wear OS.
+- Més d'un dispositiu, Google Play i Firebase App Distribution.
+- Wear OS i Android Auto (captures `16` i `17`, `disseny/docs/04-wear-i-auto.md`), amb els mòduls `:core`, `:wear` i
+  `:car` que hi proposa el handoff. Estan dissenyats però no s'han demanat.
 
 ## Decisions
 
@@ -57,6 +60,8 @@ macOS (`macOS/Sources/TuyaClient.swift`) i pel `CLAUDE.md` de l'arrel, i **mana 
 | Mode `auto` / `manual` | Té `home` (manual), `auto` i `temporary`. A `/v1.0/.../commands` només s'accepta `auto`. | `MANUAL` ↔ `home` i `AUTO` ↔ `auto`. El mode s'escriu sempre per v2 (`shadow/properties/issue`). |
 | Override «a gestionar» | Si es toca la consigna en `auto`, el dispositiu passa sol a `temporary` fins al tram següent. | `override` existeix quan el mode és `temporary`. «Fins a les HH:MM» és el final del tram actiu, calculat a partir del programa. «Tornar al programa» envia `mode = auto`. |
 | `heating` per `work_state` o derivat | `work_state` (`heating`/`stop`) només surt per v2 (`shadow/properties`). | Es llegeix per v2, i només es deriva si no hi és. |
+| Programa setmanal: 4 o 6 trams, dies agrupats? (a verificar segons el handoff) | Sempre 6 trams, i cada dia és un DP a part (`week_program_13_1` … `_7`). | 6 trams i selector de 7 dies. |
+| Programa setmanal: el primer tram és a les 00:00 i no es mou | El primer tram té hora lliure (06:15 al programa real). | Per decidir a la fase 9. |
 | Programa: hora del primer tram | El programa real comença a les 06:15, no a les 00:00 (llegit el 2026-11-01). Els 7 dies tenen els mateixos trams. | De 00:00 al primer tram s'aplica la consigna de l'últim tram, que és el que continua del dia anterior. |
 | Programa genèric | `week_program_13_1` … `_7` en base64 de 25 bytes `[dia, (h, min, temp×10 u16 BE)×6]`, **sense byte de recompte** (el 2026-11-01 en vam escriure un de més i va corrompre el programa), llegit per v2. | El decodificador es porta de `ScheduleSlot.decode`, amb tests. Cada tram acaba on comença el següent, i l'últim a les 24:00. |
 | Escala a l'especificació | Valors enters ×10 (`temp_set` 220 = 22,0 °C), amb pas de 5 (0,5 °C). El model diu fins a 600, però `upper_temp` és 350 i `lower_temp` 50. | Tot es configura a `ThermostatDpMap`. |

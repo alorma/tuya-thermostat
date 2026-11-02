@@ -100,7 +100,8 @@ handoff fan servir Inter i icones aproximades).
 ## Fase 4 · Lògica de la pantalla principal
 
 - ☑ `HomeViewModel`:
-  - refresc cada 60 s amb l'app en primer pla (`repeatOnLifecycle(STARTED)`) i pull-to-refresh;
+  - refresc amb l'app en primer pla (`repeatOnLifecycle(STARTED)`) i pull-to-refresh. Al principi era cada 60 s; ara
+    és cada 15 s (vegeu «Refresc més freqüent»);
   - ordres optimistes que es reverteixen si fallen, amb el Snackbar «No s'ha pogut aplicar el canvi»;
   - debounce de 800 ms per a −/+;
   - límits `[min, max]`, amb els botons desactivats als extrems.
@@ -233,6 +234,58 @@ que construeix el CI.
   fent servir el simulat si no es posa `caliu.realThermostat=true` a `local.properties`. Les PR construeixen sense
   secrets ni termòstat real.
 
-## Pendent: refresc més freqüent
+## Refresc més freqüent
 
-L'app de Tuya rep els canvis en temps real (MQTT/Pulsar del núvol), però el nostre projecte d'OpenAPI no ho té a l'abast d'una app. En lloc d'això, mentre l'app sigui en primer pla, consultarà l'estat cada pocs segons (ara és cada 60 s, `HomeViewModel.REFRESH_INTERVAL`) per veure els canvis fets des de fora (botons físics, Smart Life). Cal vigilar la quota de crides de l'OpenAPI abans de triar l'interval.
+- ☑ L'app de Tuya rep els canvis en temps real (MQTT/Pulsar del núvol), però el nostre projecte d'OpenAPI no ho té a
+  l'abast d'una app. En lloc d'això, amb l'app en primer pla es llegeix l'estat cada 15 s
+  (`HomeViewModel.REFRESH_INTERVAL`), i després de cada ordre cada 2 s fins que canvia `heating` (30 s com a màxim).
+  Fet el 2026-11-02 (`e7ea9a8`).
+
+## Fase 9 · Programa setmanal
+
+Nova pantalla del handoff (2026-11-02): `disseny/docs/01` § Programa setmanal, `disseny/docs/02` (files «Programa · …»)
+i les captures `19-programa-edit`, `-copy`, `-time` i `-copied`, en clar i fosc. Els textos nous són a
+`disseny/android/strings.xml` (`schedule_*`, `weekday_short`, `weekday_long`).
+
+Escriu el programa del termòstat real, que és el que fa anar la calefacció de casa. El 2026-11-01 un byte de més ja el
+va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i després de desar cal mirar-lo a Smart Life.
+
+- ☐ Pantalla principal: el botó de text «Edita» a la dreta del títol «Programa d'avui», només en mode Automàtic. Les
+  captures `01`, `02` i `04`–`07` han canviat per això: cal tornar a generar-ne els tests de captures.
+- ☐ `WeekProgramEncoder`: l'invers de `WeekProgramDecoder`, 25 bytes `[dia, (h, min, temp×10 u16 BE)×6]`, **sense byte de
+  recompte**. Tests d'anada i tornada amb el valor real del dispositiu, i que la mida sigui sempre 25.
+- ☐ `TuyaApi` / `ThermostatRepository`: llegir els 7 dies (`week_program_13_1` … `_7`, ja es llegeixen per al programa
+  d'avui) i escriure'n un per `shadow/properties/issue`. Al `FakeThermostatRepository`, desar-lo en memòria (amb
+  `failure` per provar l'error d'un dia).
+- ☐ `ScheduleViewModel`: còpia de treball dels 7 dies; dia seleccionat (avui en obrir); dies modificats; −/+ a passos de
+  0,5 °C dins `[min, max]`; hora de cada tram entre la de l'anterior i la del següent; copiar un dia a d'altres;
+  desar només els modificats, una ordre per dia, i deixar marcat el que falli.
+- ☐ Components a `:designsystem` amb previews: selector de dia (7 `ToggleButton` connectats, anell a avui, punt als
+  modificats), barra de 24 h (segments proporcionals, 5 nivells de color de `heat-hero` a `heat`, marques 0·6·12·18·24)
+  i la fila de tram (hora en píndola tonal, temperatura amb −/+).
+- ☐ `ScheduleScreen`: `LargeFlexibleTopAppBar` amb «Desa» (com Configuració), `TimePickerDialog` 24 h,
+  `ModalBottomSheet` «Copia el … a» (dies en selecció múltiple, dreceres Feiners · Cap de setmana · Tots), Snackbar
+  «Copiat a N dies» i `AlertDialog` «Descartar els canvis?» en sortir amb canvis. Ruta nova a Navigation 3.
+- ☐ Textos `schedule_*` a `values-ca/` i la traducció a `values/` (anglès).
+- ☐ Tests del ViewModel i tests de captures `19-programa-*` (el full inferior i el selector d'hora, si layoutlib no els
+  pinta, com a previews, igual que la `02`).
+- ☐ Desar, amb permís, un canvi petit al dispositiu real, tornar-lo a llegir i comprovar-lo a Smart Life.
+
+**Per decidir abans de començar** (el handoff ho deixa «a verificar amb el dispositiu», i ja ho sabem):
+
+- Trams per dia: el format en té sempre **6**, no 4.
+- Dies: el dispositiu desa **cada dia per separat** (7 DPs) i no agrupa feiners / cap de setmana, així que el selector
+  mostra els 7 dies.
+- Primer tram: al dispositiu **no comença a les 00:00** (el programa real comença a les 06:15) i de 00:00 al primer tram
+  s'aplica l'últim del dia anterior. El handoff el fixa a 00:00 i no es pot moure. Cal triar entre mostrar els 6 trams
+  del dispositiu tots amb hora editable (la barra de 24 h pinta de 00:00 al primer tram amb el color de l'últim) o fixar
+  el primer a 00:00, que canviaria el programa que hi ha ara.
+
+**Validació:** tests JVM i de captures, ktlint, provar-ho a l'emulador amb el termòstat simulat i, amb permís, una
+escriptura real comprovada a Smart Life.
+
+## Fora de l'abast, de moment
+
+El handoff nou també porta Wear OS (`disseny/docs/04-wear-i-auto.md`, captura `16`), Android Auto (captura `17`) i
+l'estructura de mòduls `:core` / `:app` / `:wear` / `:car`. Segueixen fora de l'abast fins que l'usuari ho decideixi.
+La icona (captura `18`, `disseny/android/icona/`) ja es va fer (`e277996`, amb la marca DEV a la debug a `94441fe`).

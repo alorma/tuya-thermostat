@@ -55,7 +55,7 @@ Ordre vertical (captures `01`–`07`):
      - **Temperatures ràpides** · tres opcions connectades: `20°`, `21°`, `23°`. La que coincideix amb la consigna queda seleccionada.
    - **Automàtic** (captures `01`, `04`):
      - Bàner **«Temporal fins a les HH:MM»** amb icona `back_hand` i botó de text **Tornar al programa**, només si hi ha `override`.
-     - **Programa d'avui** · 6 trams. Passats atenuats, futurs en color secundari, l'actiu ressaltat i més alt. El tram actiu porta `−`/`+` petits: canviar-hi la consigna crea un `override` fins al final del tram. El tram actiu es recalcula cada minut.
+     - **Programa d'avui** · amb el botó de text **Edita** a la dreta del títol (obre el programa setmanal) · 6 trams. Passats atenuats, futurs en color secundari, l'actiu ressaltat i més alt. El tram actiu porta `−`/`+` petits: canviar-hi la consigna crea un `override` fins al final del tram. El tram actiu es recalcula cada minut.
 5. **Peu**: icona de bateria + «87 %» a l'esquerra; «Actualitzat a les HH:MM» a la dreta (o «Actualitzant…» mentre refresca).
 
 Els títols de secció (Temperatura actual, Mode, Consigna, Temperatures ràpides, Programa d'avui) són petits i en color secundari. **No hi ha cap text sota les xifres.**
@@ -97,6 +97,19 @@ Captures `12`–`14`. Barra superior gran (`arrow_back`, títol «Configuració�
 - Grup de camps connectats: **Access ID**, **Access Secret** (ocult, amb botó mostrar/amagar), **Regió** (selector connectat EU · US · CN · IN), **Device ID**.
 - Botó tonal **Provar connexió** → mostra «Provant connexió…», després «Connexió correcta» (verd aigua) o «No s'ha pogut connectar» + causa (error).
 - Les credencials es desen xifrades (Android Keystore). Desa torna a la pantalla principal i força un refresc.
+
+## Programa setmanal
+
+Captures `19-programa-*`. S'hi entra amb el botó de text **Edita** a la dreta del títol «Programa d'avui» (només visible en mode Automàtic). Tuya desa el programa **per dies individuals**.
+
+- Barra superior gran: `arrow_back`, títol «Programa», botó **Desa**.
+- **Selector de dia**: 7 opcions connectades `Dl Dt Dc Dj Dv Ds Dg` (selecció única). Avui porta un anell; els dies modificats i no desats porten un punt. En obrir, se selecciona avui.
+- Títol de secció amb el nom del dia («Dilluns»).
+- **Barra de 24 h**: els trams del dia com a segments proporcionals, acolorits per temperatura (5 nivells de `heat-hero` a `heat`); marques 0 · 6 · 12 · 18 · 24. Només visual.
+- **Llista de 6 trams**: hora d'inici + temperatura amb −/+ (0,5 °C, dins `[min, max]`). El primer tram comença a les 00:00 i no es pot moure. Tocar l'hora obre el selector d'hora de Material 3 en format 24 h; cada hora ha d'estar entre la del tram anterior i la del següent (fora d'aquest interval, D'acord desactivat). Cada tram dura fins a l'inici del següent; l'últim, fins a les 24:00.
+- **Copia a altres dies** (botó tonal): full inferior «Copia el dilluns a» amb els 7 dies en selecció múltiple (el d'origen desactivat), dreceres **Feiners**, **Cap de setmana**, **Tots** i botons **Cancel·la** / **Copia a N dies**. En copiar: es tanca el full, els dies destí queden marcats com a modificats i surt un Snackbar «Copiat a N dies».
+- **Desa** envia a Tuya només els dies modificats (una ordre per dia), amb indicador de progrés; si un dia falla, es manté marcat i surt un Snackbar d'error. Sortir amb canvis sense desar demana confirmació («Descartar els canvis?» → **Descarta** / **Continua editant**).
+- *A verificar amb el dispositiu*: nombre de trams per dia (4 o 6), si el primer tram té hora lliure i si el dispositiu agrupa dies (feiners / dissabte / diumenge). Si agrupa, el selector de dia ha de mostrar els grups.
 
 ## Widgets (Glance)
 
