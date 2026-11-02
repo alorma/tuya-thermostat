@@ -130,7 +130,7 @@ handoff fan servir Inter i icones aproximades).
 
 - ☑ Selector de tema (Clar · Fosc · Sistema, per defecte Sistema), com a Caducity i Converses. Es desa a DataStore
   (`ThemePreferences`) i s'aplica amb `UiModeManager.setApplicationNightMode`, que el sistema recorda i que també
-  segueixen les barres i els diàlegs. Els widgets el respecten fent servir només la paleta clara o la fosca.
+  segueixen les barres i els diàlegs. Els widgets no: van amb el tema del dispositiu, com la resta del launcher.
 
 - ☑ `CredentialsStore`: DataStore amb el valor xifrat amb AES/GCM d'Android Keystore. Conté Access ID, Access Secret,
   regió (EU per defecte) i Device ID.

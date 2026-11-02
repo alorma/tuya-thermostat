@@ -21,7 +21,8 @@ interface ThemePreferences {
 /**
  * Desa el tema a DataStore i l'aplica amb [UiModeManager.setApplicationNightMode] (Android 12+). El sistema canvia
  * la configuració de l'app (pantalles, barres d'estat, diàlegs) i ho recorda entre execucions, així que la UI només ha
- * de fer servir `isSystemInDarkTheme()`. El valor desat el fan servir els widgets, que es pinten fora de l'app.
+ * de fer servir `isSystemInDarkTheme()`. Els widgets no el segueixen: viuen al launcher i van amb el tema del
+ * dispositiu, com la resta de widgets.
  */
 class DataStoreThemePreferences(
   private val context: Context,

@@ -37,9 +37,8 @@ class SettingsViewModelTest {
     }
 
   private val themePreferences = InMemoryThemePreferences()
-  private var themeChanges = 0
 
-  private fun viewModel() = SettingsViewModel(store, tester, themePreferences, onThemeChanged = { themeChanges++ })
+  private fun viewModel() = SettingsViewModel(store, tester, themePreferences)
 
   @Test
   fun `el tema per defecte és el del sistema i es desa en triar-lo`() =
@@ -53,7 +52,6 @@ class SettingsViewModelTest {
 
       assertEquals(ThemeMode.LIGHT, themePreferences.themeMode.first())
       assertEquals(ThemeMode.LIGHT, viewModel.uiState.value.themeMode)
-      assertEquals(1, themeChanges)
     }
 
   @Test

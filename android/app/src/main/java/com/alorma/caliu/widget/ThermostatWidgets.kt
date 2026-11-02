@@ -14,12 +14,10 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.semantics.contentDescription
 import androidx.glance.semantics.semantics
 import com.alorma.caliu.R
-import com.alorma.caliu.data.settings.ThemePreferences
 import com.alorma.caliu.designsystem.theme.Mood
 import com.alorma.caliu.domain.MinuteOfDay
 import com.alorma.caliu.domain.mood
 import java.time.LocalTime
-import kotlinx.coroutines.flow.first
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -28,7 +26,6 @@ class SmallThermostatWidget :
   GlanceAppWidget(),
   KoinComponent {
   private val store: SnapshotStore by inject()
-  private val themePreferences: ThemePreferences by inject()
 
   override val sizeMode: SizeMode = SizeMode.Single
 
@@ -37,11 +34,9 @@ class SmallThermostatWidget :
     id: GlanceId,
   ) {
     val initial = store.get()
-    val initialTheme = themePreferences.themeMode.first()
     provideContent {
       val state by store.snapshot.collectAsState(initial)
-      val themeMode by themePreferences.themeMode.collectAsState(initialTheme)
-      WidgetTheme(mood = state?.mood() ?: Mood.OFF, themeMode = themeMode) {
+      WidgetTheme(mood = state?.mood() ?: Mood.OFF) {
         SmallWidgetContent(
           state = state,
           modifier = GlanceModifier.semantics { contentDescription = context.getString(R.string.tile_label) },
@@ -56,7 +51,6 @@ class MediumThermostatWidget :
   GlanceAppWidget(),
   KoinComponent {
   private val store: SnapshotStore by inject()
-  private val themePreferences: ThemePreferences by inject()
 
   override val sizeMode: SizeMode = SizeMode.Single
 
@@ -65,11 +59,9 @@ class MediumThermostatWidget :
     id: GlanceId,
   ) {
     val initial = store.get()
-    val initialTheme = themePreferences.themeMode.first()
     provideContent {
       val state by store.snapshot.collectAsState(initial)
-      val themeMode by themePreferences.themeMode.collectAsState(initialTheme)
-      WidgetTheme(mood = state?.mood() ?: Mood.OFF, themeMode = themeMode) {
+      WidgetTheme(mood = state?.mood() ?: Mood.OFF) {
         MediumWidgetContent(state = state, now = MinuteOfDay.of(LocalTime.now()))
       }
     }

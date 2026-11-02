@@ -3,9 +3,6 @@ package com.alorma.caliu.widget
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
@@ -41,10 +38,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.glance.unit.ColorProvider as FixedColorProvider
 import com.alorma.caliu.MainActivity
 import com.alorma.caliu.R
-import com.alorma.caliu.data.settings.ThemeMode
 import com.alorma.caliu.designsystem.R as DsR
 import com.alorma.caliu.designsystem.theme.FixedColors
 import com.alorma.caliu.designsystem.theme.Mood
@@ -69,44 +64,17 @@ private val BigTemp = 34.sp
 private val MediumTemp = 46.sp
 private val SetpointSize = 26.sp
 
-private val LocalWidgetThemeMode = staticCompositionLocalOf { ThemeMode.SYSTEM }
-
-/**
- * Tema dels widgets: la paleta del [mood] en clar i fosc. El launcher és qui resol clar/fosc i no veu el tema de l'app,
- * així que amb [ThemeMode.LIGHT] o [ThemeMode.DARK] es fan servir els mateixos colors en tots dos casos.
- */
+/** Tema dels widgets: la paleta del [mood] en clar i fosc, segons el sistema. */
 @Composable
 fun WidgetTheme(
   mood: Mood,
-  themeMode: ThemeMode = ThemeMode.SYSTEM,
   content: @Composable () -> Unit,
 ) {
-  val light = moodColorScheme(mood, dark = false)
-  val dark = moodColorScheme(mood, dark = true)
-  CompositionLocalProvider(LocalWidgetThemeMode provides themeMode) {
-    GlanceTheme(
-      colors =
-        when (themeMode) {
-          ThemeMode.LIGHT -> ColorProviders(light = light, dark = light)
-          ThemeMode.DARK -> ColorProviders(light = dark, dark = dark)
-          ThemeMode.SYSTEM -> ColorProviders(light = light, dark = dark)
-        },
-      content = content,
-    )
-  }
+  GlanceTheme(
+    colors = ColorProviders(light = moodColorScheme(mood, dark = false), dark = moodColorScheme(mood, dark = true)),
+    content = content,
+  )
 }
-
-/** Un color de dia i un de nit, respectant el tema triat a Configuració. */
-@Composable
-private fun dayNight(
-  day: Color,
-  night: Color,
-): ColorProvider =
-  when (LocalWidgetThemeMode.current) {
-    ThemeMode.LIGHT -> FixedColorProvider(day)
-    ThemeMode.DARK -> FixedColorProvider(night)
-    ThemeMode.SYSTEM -> ColorProvider(day = day, night = night)
-  }
 
 /** Widget petit (2×1): la icona d'estat en un quadrat arrodonit i la temperatura actual. */
 @Composable
@@ -228,7 +196,7 @@ private fun StepButton(
   val base =
     GlanceModifier
       .size(48.dp)
-      .background(dayNight(day = FixedColors.trackLight, night = FixedColors.trackDark))
+      .background(ColorProvider(day = FixedColors.trackLight, night = FixedColors.trackDark))
       .cornerRadius(16.dp)
   Box(
     modifier =
@@ -314,10 +282,9 @@ private fun numerals(
 )
 
 /** El color de «°C» i dels controls desactivats: `heroVariant` del mood, que no és un rol de M3. */
-@Composable
 private fun heroVariant(state: ThermostatState?): ColorProvider {
   val mood = state?.mood() ?: Mood.OFF
-  return dayNight(
+  return ColorProvider(
     day = moodPalette(mood, dark = false).heroVariant,
     night = moodPalette(mood, dark = true).heroVariant,
   )

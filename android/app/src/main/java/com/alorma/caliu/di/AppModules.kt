@@ -95,7 +95,6 @@ private val uiModule =
         store = get(),
         tester = get(),
         themePreferences = get(),
-        onThemeChanged = { WidgetUpdater.updateWidgets(androidContext()) },
       )
     }
   }

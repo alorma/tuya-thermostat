@@ -83,7 +83,6 @@ class SettingsViewModel(
   private val store: CredentialsStore,
   private val tester: ConnectionTester,
   private val themePreferences: ThemePreferences,
-  private val onThemeChanged: suspend () -> Unit = {},
 ) : ViewModel() {
   val form = SettingsForm()
 
@@ -111,7 +110,6 @@ class SettingsViewModel(
   fun setThemeMode(mode: ThemeMode) {
     viewModelScope.launch {
       themePreferences.setThemeMode(mode)
-      onThemeChanged()
     }
   }
 
