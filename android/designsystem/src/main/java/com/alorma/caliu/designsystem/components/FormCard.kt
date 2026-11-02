@@ -211,7 +211,7 @@ private fun FormGroupPreview() {
         position = FormCardPosition.Middle,
       )
       FormCard("Regió", FormCardPosition.Middle) {
-        RegionSelector(listOf("EU", "US", "CN", "IN"), selectedIndex = 0, onSelect = {})
+        ChoiceSelector(listOf("EU", "US", "CN", "IN"), selectedIndex = 0, onSelect = {})
       }
       FormTextField(rememberTextFieldState("bf0123456789abcdefgh"), "Device ID", FormCardPosition.Last)
     }

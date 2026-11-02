@@ -9,7 +9,9 @@ import com.alorma.caliu.data.fake.FakeThermostatRepository
 import com.alorma.caliu.data.settings.CredentialsStore
 import com.alorma.caliu.data.settings.DataStoreCredentialsStore
 import com.alorma.caliu.data.settings.DataStorePauseStore
+import com.alorma.caliu.data.settings.DataStoreThemePreferences
 import com.alorma.caliu.data.settings.KeystoreSecretCipher
+import com.alorma.caliu.data.settings.ThemePreferences
 import com.alorma.caliu.data.tuya.ConnectionTester
 import com.alorma.caliu.data.tuya.TuyaApi
 import com.alorma.caliu.data.tuya.TuyaConfigProvider
@@ -39,6 +41,10 @@ private const val TIMEOUT_SECONDS = 15L
 
 private val Context.snapshotDataStore: DataStore<Preferences> by preferencesDataStore(name = SnapshotStore.FILE_NAME)
 
+private val Context.preferencesDataStore: DataStore<Preferences> by preferencesDataStore(
+  name = DataStoreThemePreferences.FILE_NAME,
+)
+
 private val Context.credentialsDataStore: DataStore<Preferences> by preferencesDataStore(
   name = DataStoreCredentialsStore.FILE_NAME,
 )
@@ -60,6 +66,7 @@ private val dataModule =
       )
     }
     single<TuyaConfigProvider> { get<CredentialsStore>() }
+    single<ThemePreferences> { DataStoreThemePreferences(androidContext(), androidContext().preferencesDataStore) }
     single { TuyaApi(client = get(), configProvider = get(), clock = get()) }
     single { TuyaErrors(androidContext()) }
     single<ConnectionTester> { TuyaConnectionTester(client = get(), clock = get(), errors = get()) }
@@ -83,7 +90,14 @@ private val dataModule =
 private val uiModule =
   module {
     viewModel { HomeViewModel(controller = get(), clock = get(), configSaved = get<CredentialsStore>().saved) }
-    viewModel { SettingsViewModel(store = get(), tester = get()) }
+    viewModel {
+      SettingsViewModel(
+        store = get(),
+        tester = get(),
+        themePreferences = get(),
+        onThemeChanged = { WidgetUpdater.updateWidgets(androidContext()) },
+      )
+    }
   }
 
 val appModules: List<Module> = listOf(dataModule, uiModule)

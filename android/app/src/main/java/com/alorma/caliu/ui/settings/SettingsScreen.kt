@@ -33,9 +33,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alorma.caliu.R
+import com.alorma.caliu.data.settings.ThemeMode
 import com.alorma.caliu.data.tuya.TuyaRegion
 import com.alorma.caliu.designsystem.R as DsR
 import com.alorma.caliu.designsystem.components.CaliuLargeTopBar
+import com.alorma.caliu.designsystem.components.ChoiceSelector
 import com.alorma.caliu.designsystem.components.ConnectionResultCard
 import com.alorma.caliu.designsystem.components.ConnectionTestButton
 import com.alorma.caliu.designsystem.components.FormCard
@@ -43,7 +45,6 @@ import com.alorma.caliu.designsystem.components.FormCardPosition
 import com.alorma.caliu.designsystem.components.FormGroup
 import com.alorma.caliu.designsystem.components.FormSecretField
 import com.alorma.caliu.designsystem.components.FormTextField
-import com.alorma.caliu.designsystem.components.RegionSelector
 import com.alorma.caliu.designsystem.theme.CaliuSpacing
 import com.alorma.caliu.designsystem.theme.CaliuTheme
 import com.alorma.caliu.designsystem.theme.CaliuType
@@ -57,6 +58,7 @@ data class SettingsActions(
   val onBack: () -> Unit = {},
   val onSave: () -> Unit = {},
   val onRegionChange: (TuyaRegion) -> Unit = {},
+  val onThemeModeChange: (ThemeMode) -> Unit = {},
   val onTestConnection: () -> Unit = {},
   // Nul·la si el sistema no permet demanar-ho (abans d'Android 13): llavors no es mostra el botó
   val onAddTile: (() -> Unit)? = null,
@@ -88,6 +90,7 @@ fun SettingsScreen(
         onBack = onBack,
         onSave = viewModel::save,
         onRegionChange = viewModel::setRegion,
+        onThemeModeChange = viewModel::setThemeMode,
         onTestConnection = viewModel::testConnection,
         onAddTile = rememberAddTileAction(),
       ),
@@ -136,6 +139,7 @@ fun SettingsContent(
       ) {
         CredentialsForm(form, uiState, actions, initialSecretVisible)
         ConnectionTest(form, uiState, actions)
+        ThemeCard(uiState, actions)
         actions.onAddTile?.let { onAddTile ->
           TextButton(onClick = onAddTile, modifier = Modifier.align(Alignment.CenterHorizontally)) {
             Text(stringResource(R.string.config_add_tile), style = CaliuType.button)
@@ -145,6 +149,27 @@ fun SettingsContent(
     }
   }
 }
+
+@Composable
+private fun ThemeCard(
+  uiState: SettingsUiState,
+  actions: SettingsActions,
+) {
+  FormCard(label = stringResource(R.string.config_theme), position = FormCardPosition.Single) {
+    ChoiceSelector(
+      options = ThemeOptions.map { stringResource(it.second) },
+      selectedIndex = ThemeOptions.indexOfFirst { it.first == uiState.themeMode },
+      onSelect = { actions.onThemeModeChange(ThemeOptions[it].first) },
+    )
+  }
+}
+
+private val ThemeOptions =
+  listOf(
+    ThemeMode.LIGHT to R.string.theme_light,
+    ThemeMode.DARK to R.string.theme_dark,
+    ThemeMode.SYSTEM to R.string.theme_system,
+  )
 
 /** Demana al sistema que afegeixi la rajola al panell de configuració ràpida (Android 13+). */
 @Composable
@@ -186,7 +211,7 @@ private fun CredentialsForm(
       initiallyVisible = initialSecretVisible,
     )
     FormCard(label = stringResource(R.string.config_region), position = FormCardPosition.Middle) {
-      RegionSelector(
+      ChoiceSelector(
         options = TuyaRegion.entries.map { it.name },
         selectedIndex = uiState.region.ordinal,
         onSelect = { actions.onRegionChange(TuyaRegion.entries[it]) },

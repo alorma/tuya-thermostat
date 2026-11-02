@@ -6,6 +6,8 @@ import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alorma.caliu.data.settings.CredentialsStore
+import com.alorma.caliu.data.settings.ThemeMode
+import com.alorma.caliu.data.settings.ThemePreferences
 import com.alorma.caliu.data.tuya.ConnectionTester
 import com.alorma.caliu.data.tuya.TuyaConfig
 import com.alorma.caliu.data.tuya.TuyaRegion
@@ -49,6 +51,7 @@ class SettingsForm(
 
 data class SettingsUiState(
   val region: TuyaRegion = TuyaRegion.EU,
+  val themeMode: ThemeMode = ThemeMode.SYSTEM,
   val test: ConnectionTestState = ConnectionTestState.Idle,
   val saving: Boolean = false,
 )
@@ -79,6 +82,8 @@ sealed interface SettingsEvent {
 class SettingsViewModel(
   private val store: CredentialsStore,
   private val tester: ConnectionTester,
+  private val themePreferences: ThemePreferences,
+  private val onThemeChanged: suspend () -> Unit = {},
 ) : ViewModel() {
   val form = SettingsForm()
 
@@ -96,6 +101,17 @@ class SettingsViewModel(
         form.fill(stored)
         _uiState.update { it.copy(region = stored.region) }
       }
+    }
+    viewModelScope.launch {
+      themePreferences.themeMode.collect { mode -> _uiState.update { it.copy(themeMode = mode) } }
+    }
+  }
+
+  /** El tema s'aplica de seguida, sense esperar «Desa»: no és una credencial. */
+  fun setThemeMode(mode: ThemeMode) {
+    viewModelScope.launch {
+      themePreferences.setThemeMode(mode)
+      onThemeChanged()
     }
   }
 

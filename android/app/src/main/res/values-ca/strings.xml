@@ -68,6 +68,10 @@
     <string name="config_test_ok">Connexió correcta</string>
     <string name="config_test_error">No s\'ha pogut connectar</string>
     <string name="config_add_tile">Afegeix la rajola al panell ràpid</string>
+    <string name="config_theme">Tema</string>
+    <string name="theme_light">Clar</string>
+    <string name="theme_dark">Fosc</string>
+    <string name="theme_system">Sistema</string>
 
     <!-- Widgets i rajola -->
     <string name="tile_label">Termòstat</string>

@@ -128,6 +128,10 @@ handoff fan servir Inter i icones aproximades).
 
 ## Fase 5 · Configuració
 
+- ☑ Selector de tema (Clar · Fosc · Sistema, per defecte Sistema), com a Caducity i Converses. Es desa a DataStore
+  (`ThemePreferences`) i s'aplica amb `UiModeManager.setApplicationNightMode`, que el sistema recorda i que també
+  segueixen les barres i els diàlegs. Els widgets el respecten fent servir només la paleta clara o la fosca.
+
 - ☑ `CredentialsStore`: DataStore amb el valor xifrat amb AES/GCM d'Android Keystore. Conté Access ID, Access Secret,
   regió (EU per defecte) i Device ID.
 - ☑ `SettingsScreen`: `LargeFlexibleTopAppBar` amb `arrow_back` i el botó «Desa»; els camps `TextField` connectats; el
@@ -201,7 +205,11 @@ text pla al DataStore.
 - `ThermostatTileService` (no és una rajola activa: el sistema la consulta cada vegada que s'obre el panell). Primer es
   pinta amb l'estat de `SnapshotStore` i després es torna a llegir el termòstat.
 - Tocar-la crida `ThermostatController.togglePause()`, la mateixa pausa que el menú d'estat. El canvi és optimista i es
-  desfà si l'ordre falla.
+  desfà si l'ordre falla. Corre a l'scope de l'app (tancar el panell no el talla) i es torna a llegir al cap de 2 s,
+  quan el núvol ja l'ha registrat. Mentre el panell és obert la rajola escolta `SnapshotStore`, com els widgets.
+- Mantenir-la premuda obre l'app (`ACTION_QS_TILE_PREFERENCES` a `MainActivity`). Els dos punts de toc de la rajola
+  de Dades mòbils (icona i resta) són exclusius de les rajoles del sistema: `CustomTile` no activa mai
+  `handlesSecondaryClick`.
 - Apagat: `STATE_UNAVAILABLE` amb el subtítol «Apagat», perquè la rajola no encén el termòstat. Sense dades encara:
   `STATE_INACTIVE` i cap subtítol.
 - A Configuració, el botó «Afegeix la rajola al panell ràpid» (només a Android 13+) crida `requestAddTileService`.

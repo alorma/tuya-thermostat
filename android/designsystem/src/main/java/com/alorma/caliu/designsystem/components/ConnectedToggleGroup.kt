@@ -78,9 +78,9 @@ fun QuickTemperatures(
   )
 }
 
-/** Regió de Tuya (EU · US · CN · IN) a Configuració: l'opció seleccionada en `primary`. */
+/** Selector d'una opció dins d'una targeta de Configuració (regió, tema): l'opció seleccionada en `primary`. */
 @Composable
-fun RegionSelector(
+fun ChoiceSelector(
   options: List<String>,
   selectedIndex: Int?,
   onSelect: (Int) -> Unit,

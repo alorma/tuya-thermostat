@@ -1,6 +1,8 @@
 package com.alorma.caliu.ui.settings
 
 import com.alorma.caliu.data.settings.CredentialsStore
+import com.alorma.caliu.data.settings.ThemeMode
+import com.alorma.caliu.data.settings.ThemePreferences
 import com.alorma.caliu.data.tuya.ConnectionTester
 import com.alorma.caliu.data.tuya.TuyaConfig
 import com.alorma.caliu.data.tuya.TuyaRegion
@@ -34,7 +36,25 @@ class SettingsViewModelTest {
       testResult
     }
 
-  private fun viewModel() = SettingsViewModel(store, tester)
+  private val themePreferences = InMemoryThemePreferences()
+  private var themeChanges = 0
+
+  private fun viewModel() = SettingsViewModel(store, tester, themePreferences, onThemeChanged = { themeChanges++ })
+
+  @Test
+  fun `el tema per defecte és el del sistema i es desa en triar-lo`() =
+    runTest(mainDispatcherRule.dispatcher) {
+      val viewModel = viewModel()
+      advanceUntilIdle()
+      assertEquals(ThemeMode.SYSTEM, viewModel.uiState.value.themeMode)
+
+      viewModel.setThemeMode(ThemeMode.LIGHT)
+      advanceUntilIdle()
+
+      assertEquals(ThemeMode.LIGHT, themePreferences.themeMode.first())
+      assertEquals(ThemeMode.LIGHT, viewModel.uiState.value.themeMode)
+      assertEquals(1, themeChanges)
+    }
 
   @Test
   fun `omple el formulari amb el que hi ha desat`() =
@@ -145,5 +165,13 @@ private class InMemoryCredentialsStore(
   override suspend fun save(config: TuyaConfig) {
     state.value = config
     _saved.emit(Unit)
+  }
+}
+
+private class InMemoryThemePreferences : ThemePreferences {
+  override val themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+
+  override suspend fun setThemeMode(mode: ThemeMode) {
+    themeMode.value = mode
   }
 }
