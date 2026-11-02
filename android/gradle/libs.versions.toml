@@ -16,6 +16,7 @@ datastore = "1.3.0"
 serialization = "1.12.0"
 coroutines = "1.11.0"
 okhttp = "5.5.1"
+retrofit = "3.0.0"
 # Captures de Compose: el plugin només té versions alpha
 composeScreenshot = "0.0.1-alpha16"
 junit = "4.13.2"
@@ -45,6 +46,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 okhttp-bom = { group = "com.squareup.okhttp3", name = "okhttp-bom", version.ref = "okhttp" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-kotlinx-serialization = { group = "com.squareup.retrofit2", name = "converter-kotlinx-serialization", version.ref = "retrofit" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver3" }
 compose-screenshot-validation = { group = "com.android.tools.screenshot", name = "screenshot-validation-api", version.ref = "composeScreenshot" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

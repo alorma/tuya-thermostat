@@ -11,6 +11,7 @@ import com.alorma.caliu.testing.MutableClock
 import com.alorma.caliu.testing.RecordingRepository
 import java.time.Instant
 import kotlin.time.Duration
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -32,7 +33,9 @@ class HomeViewModelTest {
   private val clock = MutableClock(Instant.parse("2026-11-02T12:47:00Z"))
   private val fake = FakeThermostatRepository(clock = clock, latency = Duration.ZERO, initialTemp = 19.3)
   private val repository = RecordingRepository(fake)
-  private val viewModel = HomeViewModel(ThermostatController(repository, InMemoryPauseStore()), clock)
+
+  // Lazy: el ViewModel s'ha de crear quan MainDispatcherRule ja ha posat el dispatcher principal
+  private val viewModel by lazy { HomeViewModel(ThermostatController(repository, InMemoryPauseStore()), clock) }
 
   private fun test(block: suspend TestScope.() -> Unit) =
     runTest(mainDispatcherRule.dispatcher) {
@@ -166,6 +169,24 @@ class HomeViewModelTest {
       viewModel.refresh()
       assertEquals(HomeUiState.Loading, viewModel.uiState.value)
       advanceUntilIdle()
+      assertTrue(viewModel.uiState.value is HomeUiState.Content)
+    }
+
+  @Test
+  fun `quan es desen credencials noves es torna a llegir, encara que hi hagués un error`() =
+    runTest(mainDispatcherRule.dispatcher) {
+      val saved = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+      fake.failure = ThermostatException.MissingConfig()
+      val viewModel =
+        HomeViewModel(ThermostatController(repository, InMemoryPauseStore()), clock, configSaved = saved)
+      viewModel.refresh()
+      advanceUntilIdle()
+      assertEquals(HomeUiState.MissingConfig, viewModel.uiState.value)
+
+      fake.failure = null
+      saved.emit(Unit)
+      advanceUntilIdle()
+
       assertTrue(viewModel.uiState.value is HomeUiState.Content)
     }
 }

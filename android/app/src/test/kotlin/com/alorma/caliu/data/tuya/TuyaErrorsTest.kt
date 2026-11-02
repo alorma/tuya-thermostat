@@ -16,6 +16,7 @@ class TuyaErrorsTest {
     assertEquals(Kind.NOT_AUTHORIZED, TuyaErrors.kind(1106, "permission deny"))
     assertEquals(Kind.NOT_AUTHORIZED, TuyaErrors.kind(28841105, ""))
     assertEquals(Kind.INVALID_CREDENTIALS, TuyaErrors.kind(1004, "sign invalid"))
+    assertEquals(Kind.WRONG_REGION, TuyaErrors.kind(28841107, "No permission. The data center is suspended."))
   }
 
   @Test

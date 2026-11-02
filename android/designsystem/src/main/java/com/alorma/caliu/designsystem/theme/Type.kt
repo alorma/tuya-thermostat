@@ -121,7 +121,8 @@ internal val CaliuTypography: Typography =
     base.copy(
       displayLarge = base.displayLarge.copy(fontFamily = RobotoFlex),
       displayMedium = base.displayMedium.copy(fontFamily = RobotoFlex),
-      displaySmall = base.displaySmall.copy(fontFamily = RobotoFlex),
+      // Títol desplegat de LargeFlexibleTopAppBar («Configuració»); plegat fa servir titleLarge
+      displaySmall = CaliuType.screenTitle,
       headlineLarge = base.headlineLarge.copy(fontFamily = RobotoFlex),
       headlineMedium = base.headlineMedium.copy(fontFamily = RobotoFlex),
       headlineSmall = base.headlineSmall.copy(fontFamily = RobotoFlex),

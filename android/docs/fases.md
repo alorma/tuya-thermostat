@@ -128,19 +128,38 @@ handoff fan servir Inter i icones aproximades).
 
 ## Fase 5 · Configuració
 
-- ☐ `CredentialsStore`: DataStore amb el valor xifrat amb AES/GCM d'Android Keystore. Conté Access ID, Access Secret,
+- ☑ `CredentialsStore`: DataStore amb el valor xifrat amb AES/GCM d'Android Keystore. Conté Access ID, Access Secret,
   regió (EU per defecte) i Device ID.
-- ☐ `SettingsScreen`: `LargeFlexibleTopAppBar` amb `arrow_back` i el botó «Desa»; els camps `TextField` connectats; el
+- ☑ `SettingsScreen`: `LargeFlexibleTopAppBar` amb `arrow_back` i el botó «Desa»; els camps `TextField` connectats; el
   secret amb `SecureTextField` i el botó de mostrar/amagar; la regió amb un `ButtonGroup` EU · US · CN · IN.
-- ☐ «Provar connexió»: un `FilledTonalButton` que mostra un `LoadingIndicator` petit mentre prova i després el resultat,
+- ☑ «Provar connexió»: un `FilledTonalButton` que mostra un `LoadingIndicator` petit mentre prova i després el resultat,
   correcte o error amb la causa (captures `13` i `14`).
-- ☐ «Desa» torna a la pantalla principal i força un refresc. Sense credencials es mostra l'estat «Falta la configuració»,
+- ☑ «Desa» torna a la pantalla principal i força un refresc. Sense credencials es mostra l'estat «Falta la configuració»,
   amb el botó «Configura».
 - ☑ Precarregar les credencials en debug: `BuildConfig` llegeix `TUYA_*` de les variables d'entorn (GitHub Secrets al CI) o
   de `local.properties`, igual que la funció `secret()` de Converses. Només a la debug. (Fet a la fase 3, per poder fer
   la lectura real.)
-- ☐ Passar els secrets `TUYA_*` com a `env` al pas de build de `android-build-apk.yml`.
-- ☐ Tests de captures `12`–`14`.
+- ☑ Passar els secrets `TUYA_*` com a `env` al pas de build de `android-build-apk.yml`.
+- ☑ Tests de captures `12`–`14`, més la prova en curs (`12b`, sense captura al handoff).
+
+**Notes (2026-11-02):**
+
+- La capa de Tuya passa a Retrofit (`TuyaService` + `TuyaSigningInterceptor`), a petició de l'usuari. `TuyaApi` manté la
+  mateixa interfície i els tests de la fase 3 passen igual.
+- Tota la configuració es desa xifrada en un sol valor. Mentre no s'ha desat res, es fan servir les precarregades del
+  `BuildConfig` (debug); un cop desat, mana el que s'ha desat, encara que sigui incomplet («Falta la configuració»).
+- «Provar connexió» fa un `GET …/status` amb les credencials del formulari, sense desar-les. Com que només llegeix, es fa
+  contra Tuya fins i tot amb el termòstat simulat de la debug.
+- «Desa» avisa per `CredentialsStore.saved` i el `HomeViewModel` torna a llegir (també des d'un error o de «Falta la
+  configuració»).
+- Validat a l'emulador (2026-11-02, amb el termòstat simulat i les credencials reals, només lectura): «Provar connexió»
+  correcta amb EU (la signatura amb Retrofit funciona contra Tuya) i error amb US (28841107, ara traduït com a «regió
+  equivocada»). Després de desar i matar l'app, les credencials hi continuen, i `credentials.preferences_pb` (237 bytes)
+  no conté cap dels tres valors en clar.
+- Trobat i arreglat en provar-ho: el títol de 40 sp es partia quan la barra es plegava (ara va pel rol `displaySmall` i
+  plegada fa servir `titleLarge`), i Android oferia desar l'Access Secret al gestor de contrasenyes (ara es cancel·la
+  l'autocompletat en sortir de Configuració).
+- Per mirar: `uiautomator dump` mostra el text de l'Access Secret al node d'accessibilitat del `SecureTextField`.
 
 **Validació:** desar, matar l'app i tornar-la a obrir: les credencials s'han de mantenir i el secret no ha de sortir en
 text pla al DataStore.

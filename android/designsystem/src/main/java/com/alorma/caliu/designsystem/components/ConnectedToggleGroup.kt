@@ -78,6 +78,28 @@ fun QuickTemperatures(
   )
 }
 
+/** Regió de Tuya (EU · US · CN · IN) a Configuració: l'opció seleccionada en `primary`. */
+@Composable
+fun RegionSelector(
+  options: List<String>,
+  selectedIndex: Int?,
+  onSelect: (Int) -> Unit,
+  modifier: Modifier = Modifier,
+  enabled: Boolean = true,
+) {
+  ConnectedToggleGroup(
+    options = options,
+    selectedIndex = selectedIndex,
+    onSelect = onSelect,
+    enabled = enabled,
+    height = 48.dp,
+    textStyle = CaliuType.button,
+    checkedContainer = MaterialTheme.colorScheme.primary,
+    checkedContent = MaterialTheme.colorScheme.onPrimary,
+    modifier = modifier,
+  )
+}
+
 /**
  * Grup connectat de M3 Expressive: `ToggleButton` amb les formes `ButtonGroupDefaults.connected*ButtonShapes` (24 dp
  * a fora, 8 dp a dins, píndola quan està seleccionat) i 2 dp de separació. És el patró oficial de grup connectat de

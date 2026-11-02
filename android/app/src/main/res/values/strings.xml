@@ -57,6 +57,7 @@
     <string name="tuya_trial_expired">The IoT Core trial has expired; renew it in the Tuya console.</string>
     <string name="tuya_not_authorized">Tuya won\'t let you access the thermostat. Check that the Tuya Smart account is still linked to the project and that IoT Core is active.</string>
     <string name="tuya_invalid_credentials">The Tuya credentials aren\'t valid. Copy the Access ID and Access Secret again from iot.tuya.com.</string>
+    <string name="tuya_wrong_region">This Tuya project isn\'t in this region. Choose the region of the project (you\'ll find it at iot.tuya.com).</string>
     <string name="tuya_unexpected_response">Tuya sent an unexpected response.</string>
     <string name="tuya_error_generic" translatable="false">Tuya (%1$d): %2$s</string>
 

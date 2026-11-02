@@ -26,7 +26,7 @@ data class TuyaConfig(
   val isComplete: Boolean get() = accessId.isNotBlank() && accessSecret.isNotBlank() && deviceId.isNotBlank()
 }
 
-/** D'on surten les credencials. A la fase 5 serà el `CredentialsStore` xifrat. */
+/** D'on surten les credencials: el `CredentialsStore` xifrat, o unes de fixes per a «Provar connexió». */
 fun interface TuyaConfigProvider {
   suspend fun config(): TuyaConfig?
 }

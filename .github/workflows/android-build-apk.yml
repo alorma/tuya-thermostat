@@ -38,8 +38,14 @@ jobs:
       - name: Run ktlint
         run: ./gradlew ktlintCheck
 
+      # Credencials precarregades a la debug (BuildConfig). Mai a la release
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug
+        env:
+          TUYA_ACCESS_ID: ${{ secrets.TUYA_ACCESS_ID }}
+          TUYA_ACCESS_SECRET: ${{ secrets.TUYA_ACCESS_SECRET }}
+          TUYA_REGION: ${{ secrets.TUYA_REGION }}
+          TUYA_DEVICE_ID: ${{ secrets.TUYA_DEVICE_ID }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v7

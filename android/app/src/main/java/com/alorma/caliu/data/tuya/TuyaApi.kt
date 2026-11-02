@@ -3,10 +3,9 @@ package com.alorma.caliu.data.tuya
 import com.alorma.caliu.domain.ThermostatException
 import java.io.IOException
 import java.time.Clock
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -22,23 +21,33 @@ import kotlinx.serialization.json.longOrNull
 import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.HttpException
+import retrofit2.Retrofit
+import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 /**
- * Client de Tuya Cloud OpenAPI sobre OkHttp. Signa cada petició amb [TuyaSigner], guarda el token en memòria i el
- * renova un minut abans que caduqui, o quan Tuya diu que no és vàlid.
+ * Client de Tuya Cloud OpenAPI sobre Retrofit ([TuyaService]). [TuyaSigningInterceptor] signa cada petició; aquí es
+ * guarda el token en memòria i es renova un minut abans que caduqui, o quan Tuya diu que no és vàlid.
  *
  * Llança [TuyaApiException] si Tuya respon amb un error, [ThermostatException.MissingConfig] si no hi ha
  * credencials i [IOException] si falla la xarxa. [TuyaThermostatRepository] ho tradueix a errors de domini.
  */
 class TuyaApi(
-  private val client: OkHttpClient,
+  client: OkHttpClient,
   private val configProvider: TuyaConfigProvider,
   private val clock: Clock,
-  private val baseUrlOverride: String? = null,
+  baseUrlOverride: String? = null,
 ) {
   private val json = Json { ignoreUnknownKeys = true }
+  private val service: TuyaService =
+    Retrofit
+      .Builder()
+      // El host real el posa l'interceptor segons la regió de les credencials
+      .baseUrl(PLACEHOLDER_BASE_URL)
+      .client(client.newBuilder().addInterceptor(TuyaSigningInterceptor(clock, baseUrlOverride)).build())
+      .addConverterFactory(json.asConverterFactory(JSON_MEDIA_TYPE))
+      .build()
+      .create(TuyaService::class.java)
   private val tokenMutex = Mutex()
   private var token: Token? = null
 
@@ -49,15 +58,13 @@ class TuyaApi(
   )
 
   /** `GET /v1.0/devices/{id}/status` → valors per codi. */
-  suspend fun status(): Map<String, JsonElement> {
-    val result = authenticated("GET") { "/v1.0/devices/${it.deviceId}/status" }
-    return result.jsonArray.associateCodes()
-  }
+  suspend fun status(): Map<String, JsonElement> =
+    authenticated { config, auth -> service.status(config.deviceId, auth) }.jsonArray.associateCodes()
 
   /** `GET /v2.0/cloud/thing/{id}/shadow/properties?codes=…` → valors per codi. */
   suspend fun properties(codes: List<String>): Map<String, JsonElement> {
     val result =
-      authenticated("GET") { "/v2.0/cloud/thing/${it.deviceId}/shadow/properties?codes=${codes.joinToString(",")}" }
+      authenticated { config, auth -> service.properties(config.deviceId, codes.joinToString(","), auth) }
     val properties = result.jsonObject["properties"] ?: throw TuyaMalformedResponseException("Falten les propietats")
     return properties.jsonArray.associateCodes()
   }
@@ -81,7 +88,7 @@ class TuyaApi(
           },
         )
       }
-    val result = authenticated("POST", body.toString()) { "/v1.0/devices/${it.deviceId}/commands" }
+    val result = authenticated { config, auth -> service.commands(config.deviceId, body, auth) }
     if ((result as? JsonPrimitive)?.booleanOrNull != true) {
       throw TuyaMalformedResponseException("El termòstat ha rebutjat l'ordre")
     }
@@ -90,23 +97,19 @@ class TuyaApi(
   /** `POST …/shadow/properties/issue`: escriu propietats del model complet (per exemple, `mode = home`). */
   suspend fun issueProperties(properties: JsonObject) {
     val body = buildJsonObject { put("properties", properties.toString()) }
-    authenticated("POST", body.toString()) { "/v2.0/cloud/thing/${it.deviceId}/shadow/properties/issue" }
+    authenticated { config, auth -> service.issueProperties(config.deviceId, body, auth) }
   }
 
-  private suspend fun authenticated(
-    method: String,
-    body: String? = null,
-    path: (TuyaConfig) -> String,
-  ): JsonElement {
+  private suspend fun authenticated(call: suspend (TuyaConfig, TuyaAuth) -> JsonObject): JsonElement {
     val config = requireConfig()
     val first = validToken(config)
     return try {
-      call(config, method, path(config), body, first)
+      unwrap { call(config, TuyaAuth(config, first)) }
     } catch (e: TuyaApiException) {
       if (!e.isTokenInvalid) throw e
       // Token caducat al servidor: se'n demana un de nou i es torna a provar una vegada
       tokenMutex.withLock { if (token?.accessToken == first) token = null }
-      call(config, method, path(config), body, validToken(config))
+      unwrap { call(config, TuyaAuth(config, validToken(config))) }
     }
   }
 
@@ -119,7 +122,7 @@ class TuyaApi(
       token
         ?.takeIf { it.config == config && it.expiresAtMillis - TOKEN_MARGIN_MILLIS > now }
         ?.let { return@withLock it.accessToken }
-      val result = call(config, "GET", "/v1.0/token?grant_type=1", body = null, accessToken = null).jsonObject
+      val result = unwrap { service.token(TuyaAuth(config, accessToken = null)) }.jsonObject
       val accessToken =
         result["access_token"]?.jsonPrimitive?.content
           ?: throw TuyaMalformedResponseException("Falta l'access_token")
@@ -128,52 +131,30 @@ class TuyaApi(
       accessToken
     }
 
-  private suspend fun call(
-    config: TuyaConfig,
-    method: String,
-    pathAndQuery: String,
-    body: String?,
-    accessToken: String?,
-  ): JsonElement =
-    withContext(Dispatchers.IO) {
-      val timestamp = clock.millis().toString()
-      val bodyBytes = body?.toByteArray()
-      val sign =
-        TuyaSigner.sign(
-          clientId = config.accessId,
-          secret = config.accessSecret,
-          timestamp = timestamp,
-          method = method,
-          pathAndQuery = pathAndQuery,
-          body = bodyBytes,
-          accessToken = accessToken,
-        )
-      val request =
-        Request
-          .Builder()
-          .url((baseUrlOverride ?: config.region.host) + pathAndQuery)
-          .method(method, bodyBytes?.toRequestBody(JSON_MEDIA_TYPE))
-          .header("client_id", config.accessId)
-          .header("sign", sign)
-          .header("t", timestamp)
-          .header("sign_method", "HMAC-SHA256")
-          .apply { if (accessToken != null) header("access_token", accessToken) }
-          .build()
-
-      client.newCall(request).execute().use { response ->
-        val text = response.body.string()
-        val envelope =
-          runCatching { json.parseToJsonElement(text).jsonObject }.getOrNull()
-            ?: throw TuyaMalformedResponseException("Resposta inesperada (HTTP ${response.code})")
-        if (envelope["success"]?.jsonPrimitive?.booleanOrNull != true) {
-          throw TuyaApiException(
-            code = envelope["code"]?.jsonPrimitive?.intOrNull ?: 0,
-            msg = envelope["msg"]?.jsonPrimitive?.content.orEmpty(),
-          )
-        }
-        envelope["result"] ?: JsonPrimitive(true)
+  /** Desembolica el sobre de Tuya: `result` si `success`, i si no, [TuyaApiException] amb el codi. */
+  private suspend fun unwrap(call: suspend () -> JsonObject): JsonElement {
+    val envelope =
+      try {
+        call()
+      } catch (e: HttpException) {
+        // Tuya respon els errors amb HTTP 200; un altre codi amb el sobre a dins també es tracta com a error de Tuya
+        e
+          .response()
+          ?.errorBody()
+          ?.string()
+          ?.let { runCatching { json.parseToJsonElement(it).jsonObject }.getOrNull() }
+          ?: throw TuyaMalformedResponseException("Resposta inesperada (HTTP ${e.code()})")
+      } catch (e: SerializationException) {
+        throw TuyaMalformedResponseException("Resposta inesperada: ${e.message}")
       }
+    if (envelope["success"]?.jsonPrimitive?.booleanOrNull != true) {
+      throw TuyaApiException(
+        code = envelope["code"]?.jsonPrimitive?.intOrNull ?: 0,
+        msg = envelope["msg"]?.jsonPrimitive?.content.orEmpty(),
+      )
     }
+    return envelope["result"] ?: JsonPrimitive(true)
+  }
 
   private fun JsonElement.associateCodes(): Map<String, JsonElement> =
     jsonArray
@@ -184,6 +165,7 @@ class TuyaApi(
       }.toMap()
 
   companion object {
+    private const val PLACEHOLDER_BASE_URL = "https://openapi.tuyaeu.com/"
     private val JSON_MEDIA_TYPE = "application/json".toMediaType()
     private const val TOKEN_MARGIN_MILLIS = 60_000L
     private const val DEFAULT_EXPIRE_SECONDS = 3_600L

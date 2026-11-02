@@ -115,6 +115,8 @@ dependencies {
   implementation(libs.kotlinx.coroutines.android)
   implementation(platform(libs.okhttp.bom))
   implementation(libs.okhttp)
+  implementation(libs.retrofit)
+  implementation(libs.retrofit.kotlinx.serialization)
   debugImplementation(libs.androidx.compose.ui.tooling)
   implementation(libs.androidx.compose.ui.tooling.preview)
   testImplementation(libs.junit)

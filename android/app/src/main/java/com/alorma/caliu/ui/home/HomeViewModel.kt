@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -35,7 +36,8 @@ sealed interface HomeEvent {
 
 /**
  * Pantalla principal (`disseny/docs/01-especificacio.md` § Ordres i sincronització):
- * - refresc cada 60 s amb l'app en primer pla ([refreshPeriodically]) i en estirar ([refresh]);
+ * - refresc cada 60 s amb l'app en primer pla ([refreshPeriodically]), en estirar ([refresh]) i quan es desen
+ *   credencials noves ([configSaved]);
  * - ordres optimistes: la UI canvia a l'instant i, si l'ordre falla, es reverteix i s'emet [HomeEvent.CommandFailed];
  * - −/+ s'agrupen 800 ms abans d'enviar-se, sempre dins `[min, max]`;
  * - mentre hi ha ordres pendents, els refrescos no trepitgen l'estat optimista; quan acaben, es torna a llegir al cap
@@ -46,6 +48,7 @@ class HomeViewModel(
   private val clock: Clock,
   private val setpointDebounce: Duration = SETPOINT_DEBOUNCE,
   private val syncDelay: Duration = SYNC_DELAY,
+  configSaved: Flow<Unit> = emptyFlow(),
 ) : ViewModel() {
   private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
   val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -64,6 +67,16 @@ class HomeViewModel(
   private var setpointJob: Job? = null
 
   private val busy: Boolean get() = commandsInFlight > 0 || setpointBase != null
+
+  init {
+    // S'han desat credencials noves a Configuració: el que s'estigués llegint amb les velles ja no val
+    viewModelScope.launch {
+      configSaved.collect {
+        loadJob?.cancel()
+        load(pull = true)
+      }
+    }
+  }
 
   /** Refresca ara i després cada 60 s. Es crida amb l'app en primer pla i es cancel·la en sortir-ne. */
   suspend fun refreshPeriodically() {

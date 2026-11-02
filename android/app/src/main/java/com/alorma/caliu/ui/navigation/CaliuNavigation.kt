@@ -8,8 +8,8 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.alorma.caliu.ui.home.HomeScreen
+import com.alorma.caliu.ui.settings.SettingsScreen
 
-// La pantalla de configuració (SettingsRoute) s'afegeix a la fase 5
 @Composable
 fun CaliuNavigation(modifier: Modifier = Modifier) {
   val backStack = rememberNavBackStack(HomeRoute)
@@ -24,8 +24,14 @@ fun CaliuNavigation(modifier: Modifier = Modifier) {
       ),
     entryProvider =
       entryProvider {
-        // La configuració encara no existeix: el botó no fa res fins a la fase 5
-        entry<HomeRoute> { HomeScreen(onOpenSettings = {}) }
+        entry<HomeRoute> { HomeScreen(onOpenSettings = { backStack.add(SettingsRoute) }) }
+        // Desar torna a la principal, que es refresca sola quan el CredentialsStore avisa que s'ha desat
+        entry<SettingsRoute> {
+          SettingsScreen(
+            onBack = { backStack.removeLastOrNull() },
+            onSaved = { backStack.removeLastOrNull() },
+          )
+        }
       },
   )
 }
