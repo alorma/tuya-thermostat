@@ -301,8 +301,9 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
 - `ScheduleViewModel` no deixa editar si algun dia no té 6 trams (estat «No es pot llegir el programa»). Desar envia
   els dies modificats de dilluns a diumenge; si n'ha desat algun, `ProgramChanges` avisa la principal, que torna a
   llegir. Mentre desa, el botó «Desa» mostra un `LoadingIndicator` i no es pot editar.
-- La barra de 24 h acoloreix per trams fixos de temperatura (≤18 °C neutre, 19, 20, 21, ≥21,5 °C), perquè un valor
-  tingui el mateix color tots els dies.
+- La barra de 24 h reparteix les temperatures diferents de tota la setmana entre els 5 nivells (la més fresca,
+  neutra; la més calenta, la més intensa). Al principi eren trams fixos pensats per a 17–21,5 °C, però amb el programa
+  real (20,5–23 °C) gairebé tota la barra quedava del mateix to.
 - «Edita» surt sempre en automàtic, també apagat o en pausa: el programa es pot preparar igualment.
 - El full «Copia el … a» i el selector d'hora es pinten a mà a les captures (`19-programa-copy`, `-time`), perquè
   layoutlib no pinta les finestres. A l'app són `ModalBottomSheet` i `TimePickerDialog` amb el `TimePicker` rodó (dial de 24 h), a petició de l'usuari.

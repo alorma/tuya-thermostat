@@ -63,6 +63,7 @@ import com.alorma.caliu.designsystem.components.Section
 import com.alorma.caliu.designsystem.components.StatePanel
 import com.alorma.caliu.designsystem.components.StatePanelButton
 import com.alorma.caliu.designsystem.components.StatePanelButtonKind
+import com.alorma.caliu.designsystem.components.TIMELINE_LEVELS
 import com.alorma.caliu.designsystem.components.TimelineSegment
 import com.alorma.caliu.designsystem.theme.CaliuSpacing
 import com.alorma.caliu.designsystem.theme.CaliuTheme
@@ -271,11 +272,19 @@ private fun ColumnScope.Editor(
     modifiedIndices = state.modifiedDays.mapTo(mutableSetOf()) { it.ordinal },
     onSelect = { actions.onSelectDay(DayOfWeek.entries[it]) },
   )
+  val level =
+    remember(state.days) {
+      timelineLevels(
+        state.days.values
+          .flatten()
+          .map { it.setpoint },
+      )
+    }
   Section(longNames[day.ordinal]) {
     DayTimeline(
       segments =
         state.program.scheduleFor(day).map {
-          TimelineSegment(start = it.start.value, end = it.end.value, level = timelineLevel(it.setpoint))
+          TimelineSegment(start = it.start.value, end = it.end.value, level = level(it.setpoint))
         },
       description = stringResource(R.string.schedule_timeline_a11y, longNames[day.ordinal]),
     )
@@ -307,17 +316,25 @@ private fun ColumnScope.Editor(
 }
 
 /**
- * Nivell de color de la barra de 24 h segons la temperatura, a trams fixos perquè un mateix valor tingui el mateix
- * color tots els dies: fins a 18 °C, el neutre; i de 19 °C a 21,5 °C o més, de `heat-hero` cap a `heat`.
+ * Nivells de color de la barra de 24 h a partir de les temperatures de tota la setmana, perquè un mateix valor tingui
+ * el mateix color tots els dies. Les temperatures diferents, ordenades, es reparteixen entre els [TIMELINE_LEVELS]
+ * nivells: la més fresca és el neutre i la més calenta, el color més intens. Amb el programa del handoff
+ * (17 · 19 · 20 · 21 · 21,5 °C) surt un nivell per a cada una; amb tres temperatures, els nivells 0, 2 i 4.
  */
-internal fun timelineLevel(celsius: Double): Int =
-  when {
-    celsius < 18.5 -> 0
-    celsius < 19.5 -> 1
-    celsius < 20.5 -> 2
-    celsius < 21.5 -> 3
-    else -> 4
+internal fun timelineLevels(setpoints: Collection<Double>): (Double) -> Int {
+  val distinct = setpoints.distinct().sorted()
+  val top = TIMELINE_LEVELS - 1
+  if (distinct.size <= 1) return { top / 2 }
+  val levels =
+    distinct.withIndex().associate { (i, t) ->
+      t to
+        Math.round(i.toDouble() * top / (distinct.size - 1)).toInt()
+    }
+  return { celsius ->
+    levels[celsius]
+      ?: (distinct.indexOfLast { it <= celsius }.coerceAtLeast(0) * top / (distinct.size - 1))
   }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
