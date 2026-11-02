@@ -40,8 +40,9 @@ sealed interface HomeEvent {
  *   credencials noves ([configSaved]);
  * - ordres optimistes: la UI canvia a l'instant i, si l'ordre falla, es reverteix i s'emet [HomeEvent.CommandFailed];
  * - −/+ s'agrupen 800 ms abans d'enviar-se, sempre dins `[min, max]`;
- * - mentre hi ha ordres pendents, els refrescos no trepitgen l'estat optimista; quan acaben, es torna a llegir al cap
- *   de 2 s per agafar el que hagi canviat el dispositiu (escalfa o no, el mode temporal…).
+ * - mentre hi ha ordres pendents, els refrescos no trepitgen l'estat optimista;
+ * - després d'una ordre es llegeix cada 2 s fins que el dispositiu canvia d'escalfar a no escalfar (o al revés), com a
+ *   molt 30 s, i aleshores es torna al ritme tranquil de cada 15 s.
  */
 class HomeViewModel(
   private val controller: ThermostatController,
@@ -78,7 +79,7 @@ class HomeViewModel(
     }
   }
 
-  /** Refresca ara i després cada 60 s. Es crida amb l'app en primer pla i es cancel·la en sortir-ne. */
+  /** Refresca ara i després cada 15 s. Es crida amb l'app en primer pla i es cancel·la en sortir-ne. */
   suspend fun refreshPeriodically() {
     while (true) {
       load(pull = false)
@@ -87,7 +88,9 @@ class HomeViewModel(
   }
 
   /** Pull-to-refresh i «Torna-ho a provar». */
-  fun refresh() = load(pull = true)
+  fun refresh() {
+    load(pull = true)
+  }
 
   fun activate() =
     command(
@@ -194,7 +197,7 @@ class HomeViewModel(
     commandsInFlight++
     try {
       commandMutex.withLock { action() }
-      scheduleSync()
+      scheduleSync(before)
     } catch (e: ThermostatException) {
       (_uiState.value as? HomeUiState.Content)?.let { _uiState.value = it.copy(state = before) }
       _events.send(HomeEvent.CommandFailed)
@@ -203,25 +206,35 @@ class HomeViewModel(
     }
   }
 
-  private fun scheduleSync() {
+  /**
+   * Seguiment ràpid d'una ordre: el dispositiu triga uns segons a decidir si escalfa i el núvol a reportar-ho. Es
+   * llegeix cada [syncDelay] fins que `heating` canvia respecte d'abans de l'ordre; si no canvia (per exemple, s'ha
+   * pujat la consigna però ja escalfava) es para després de [SYNC_ATTEMPTS] lectures.
+   */
+  private fun scheduleSync(before: ThermostatState) {
     syncJob?.cancel()
     syncJob =
       viewModelScope.launch {
-        delay(syncDelay)
-        load(pull = false)
+        repeat(SYNC_ATTEMPTS) {
+          delay(syncDelay)
+          if (busy) return@launch // Una ordre nova en començarà un altre
+          load(pull = false).join()
+          val now = content()?.state ?: return@launch
+          if (now.heating != before.heating) return@launch
+        }
       }
   }
 
-  private fun load(pull: Boolean) {
-    if (loadJob?.isActive == true) return
+  private fun load(pull: Boolean): Job {
+    loadJob?.takeIf { it.isActive }?.let { return it }
     when (val current = _uiState.value) {
       is HomeUiState.Content -> if (pull) _uiState.value = current.copy(refreshing = true)
       HomeUiState.Loading -> Unit
       // Torna-ho a provar des d'un error: es torna a l'skeleton
       else -> if (pull) _uiState.value = HomeUiState.Loading
     }
-    loadJob =
-      viewModelScope.launch {
+    return viewModelScope
+      .launch {
         val result =
           try {
             val state = controller.state()
@@ -240,7 +253,7 @@ class HomeViewModel(
             busy && current is HomeUiState.Content -> current.copy(refreshing = false, now = now())
             else -> result
           }
-      }
+      }.also { loadJob = it }
   }
 
   private fun content(): HomeUiState.Content? = _uiState.value as? HomeUiState.Content
@@ -248,9 +261,10 @@ class HomeViewModel(
   private fun now(): MinuteOfDay = MinuteOfDay.of(LocalTime.now(clock))
 
   companion object {
-    val REFRESH_INTERVAL = 60.seconds
+    val REFRESH_INTERVAL = 15.seconds
     val SETPOINT_DEBOUNCE = 800.milliseconds
     val SYNC_DELAY = 2.seconds
+    const val SYNC_ATTEMPTS = 15
   }
 }
 

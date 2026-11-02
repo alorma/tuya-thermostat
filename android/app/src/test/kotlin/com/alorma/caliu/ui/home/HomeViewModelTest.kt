@@ -5,6 +5,8 @@ import com.alorma.caliu.domain.MinuteOfDay
 import com.alorma.caliu.domain.Mode
 import com.alorma.caliu.domain.ThermostatController
 import com.alorma.caliu.domain.ThermostatException
+import com.alorma.caliu.domain.ThermostatRepository
+import com.alorma.caliu.domain.ThermostatState
 import com.alorma.caliu.testing.InMemoryPauseStore
 import com.alorma.caliu.testing.MainDispatcherRule
 import com.alorma.caliu.testing.MutableClock
@@ -189,4 +191,51 @@ class HomeViewModelTest {
 
       assertTrue(viewModel.uiState.value is HomeUiState.Content)
     }
+
+  @Test
+  fun `després d'una ordre es llegeix sovint fins que canvia si escalfa, i després es para`() =
+    runTest(mainDispatcherRule.dispatcher) {
+      // El dispositiu triga 3 lectures a reportar que ja no escalfa
+      val lagging = LaggingRepository(repository, lag = 3)
+      val viewModel = HomeViewModel(ThermostatController(lagging, InMemoryPauseStore()), clock)
+      viewModel.refresh()
+      advanceUntilIdle()
+      assertTrue((viewModel.uiState.value as HomeUiState.Content).state.heating)
+
+      lagging.fetches = 0
+      lagging.staleReads = 3
+      viewModel.setPreset(18.0)
+      advanceTimeBy(HomeViewModel.SYNC_DELAY * 3)
+      runCurrent()
+      assertTrue((viewModel.uiState.value as HomeUiState.Content).state.heating)
+      advanceTimeBy(HomeViewModel.SYNC_DELAY)
+      runCurrent()
+      assertFalse((viewModel.uiState.value as HomeUiState.Content).state.heating)
+
+      // Un cop ha canviat, es torna al ritme tranquil: ni una lectura més del seguiment
+      val afterChange = lagging.fetches
+      advanceTimeBy(HomeViewModel.SYNC_DELAY * HomeViewModel.SYNC_ATTEMPTS)
+      runCurrent()
+      assertEquals(afterChange, lagging.fetches)
+    }
+}
+
+/** Repositori que, després d'una ordre, segueix reportant `heating` d'abans durant [staleReads] lectures. */
+private class LaggingRepository(
+  private val delegate: ThermostatRepository,
+  lag: Int,
+) : ThermostatRepository by delegate {
+  var fetches = 0
+  var staleReads = lag
+  private var last: ThermostatState? = null
+
+  override suspend fun fetch(): ThermostatState {
+    fetches++
+    val real = delegate.fetch()
+    val previous = last
+    val reported = if (staleReads > 0 && previous != null) real.copy(heating = previous.heating) else real
+    if (staleReads > 0 && previous != null) staleReads--
+    last = reported
+    return reported
+  }
 }
