@@ -305,7 +305,7 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
   tingui el mateix color tots els dies.
 - «Edita» surt sempre en automàtic, també apagat o en pausa: el programa es pot preparar igualment.
 - El full «Copia el … a» i el selector d'hora es pinten a mà a les captures (`19-programa-copy`, `-time`), perquè
-  layoutlib no pinta les finestres. A l'app són `ModalBottomSheet` i `TimePickerDialog` amb `TimeInput`.
+  layoutlib no pinta les finestres. A l'app són `ModalBottomSheet` i `TimePickerDialog` amb el `TimePicker` rodó (dial de 24 h), a petició de l'usuari.
 - Pendent per a la prova final: a l'emulador amb el simulat, editar hores i temperatures, copiar, desar (també amb un
   dia que falli), sortir amb canvis i comprovar que la principal mostra el programa nou. Després, **amb permís**, un
   canvi petit al dispositiu real comprovat a Smart Life.

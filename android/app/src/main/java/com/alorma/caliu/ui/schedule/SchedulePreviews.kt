@@ -16,7 +16,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -95,7 +95,7 @@ fun ScheduleCopyPreview() {
   }
 }
 
-/** Captura `19-programa-time`. Com el full, el diàleg es pinta a mà amb el mateix `TimeInput`. */
+/** Captura `19-programa-time`. Com el full, el diàleg es pinta a mà amb el mateix `TimePicker`. */
 @OptIn(ExperimentalMaterial3Api::class)
 @HomePreviews
 @Composable
@@ -115,13 +115,15 @@ fun ScheduleTimePreview() {
         Column(
           modifier = Modifier.padding(CaliuSpacing.xl),
           verticalArrangement = Arrangement.spacedBy(CaliuSpacing.l),
+          horizontalAlignment = Alignment.CenterHorizontally,
         ) {
           Text(
             stringResource(R.string.schedule_start_time),
+            modifier = Modifier.fillMaxWidth(),
             style = CaliuType.sectionLabel,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           )
-          TimeInput(rememberTimePickerState(initialHour = 6, initialMinute = 30, is24Hour = true))
+          TimePicker(rememberTimePickerState(initialHour = 6, initialMinute = 30, is24Hour = true))
           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(onClick = {}) { Text(stringResource(R.string.action_cancel), style = CaliuType.button) }
             TextButton(onClick = {}) { Text(stringResource(R.string.action_ok), style = CaliuType.button) }
