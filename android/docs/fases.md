@@ -254,6 +254,11 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
   captures `01`, `02` i `04`–`07` han canviat per això: cal tornar a generar-ne els tests de captures.
 - ☐ `WeekProgramEncoder`: l'invers de `WeekProgramDecoder`, 25 bytes `[dia, (h, min, temp×10 u16 BE)×6]`, **sense byte de
   recompte**. Tests d'anada i tornada amb el valor real del dispositiu, i que la mida sigui sempre 25.
+- ☐ `WeekProgramDecoder` torna els **6 trams reals** del dia, sense afegir-ne cap a les 00:00. Ara se'n posa un de
+  virtual a les 00:00 (`WeekProgramDecoder.kt:38`) amb la consigna de l'últim tram **d'avui**. El tram de la
+  matinada (de 00:00 al primer tram) l'ha de calcular el domini amb l'últim tram **del dia anterior** (dilluns
+  agafa el de diumenge): a «Programa d'avui», al tram actiu, al widget, a la barra de 24 h i al termòstat
+  simulat. Ara no es nota perquè els 7 dies són iguals. Tests amb dies diferents.
 - ☐ `TuyaApi` / `ThermostatRepository`: llegir els 7 dies (`week_program_13_1` … `_7`, ja es llegeixen per al programa
   d'avui) i escriure'n un per `shadow/properties/issue`. Al `FakeThermostatRepository`, desar-lo en memòria (amb
   `failure` per provar l'error d'un dia).
@@ -279,7 +284,8 @@ va corrompre: **cap escriptura al dispositiu real sense permís de l'usuari**, i
 - Primer tram (decisió de l'usuari, 2026-11-02): es mostren els 6 trams del dispositiu i **tots tenen l'hora editable**,
   de 00:00 a 23:59 (el programa real comença a les 06:15). Cada hora ha d'anar entre la del tram anterior i la del
   següent. De 00:00 al primer tram s'aplica l'últim tram del dia anterior, i la barra de 24 h pinta aquest tros amb el
-  color de l'últim. No hi ha cap tram fix a les 00:00 com al handoff.
+  color de l'últim tram del dia anterior. No hi ha cap tram fix a les 00:00 com al handoff, però un tram pot començar
+  a les 00:00 si es vol.
 
 **Validació:** tests JVM i de captures, ktlint, provar-ho a l'emulador amb el termòstat simulat i, amb permís, una
 escriptura real comprovada a Smart Life.
