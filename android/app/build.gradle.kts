@@ -21,12 +21,10 @@ fun secret(name: String): String = System.getenv(name) ?: localProperties.getPro
 fun String.quoted() = "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 // La debug fa servir el termòstat simulat si no es demana explícitament el real, perquè les proves no toquin la
-// calefacció de casa. Es demana amb `caliu.realThermostat=true` a `local.properties`
-val realThermostatInDebug = localProperties.getProperty("caliu.realThermostat").toBoolean()
-
-// Keystore de release: mai al repo. Al CI, el workflow de distribució la descodifica d'un secret a un fitxer temporal i
-// en passa el camí per `CALIU_RELEASE_KEYSTORE`. Si no n'hi ha, el release es construeix sense signar
-val releaseKeystore = secret("CALIU_RELEASE_KEYSTORE").takeIf { it.isNotBlank() }?.let { file(it) }
+// calefacció de casa. Es demana amb `caliu.realThermostat=true` a `local.properties` o amb `CALIU_REAL_THERMOSTAT=true`
+// a l'entorn; el CI ho fa, perquè l'APK que construeix és el que es fa servir de debò
+val realThermostatInDebug =
+  (System.getenv("CALIU_REAL_THERMOSTAT") ?: localProperties.getProperty("caliu.realThermostat")).toBoolean()
 
 android {
   namespace = "com.alorma.caliu"
@@ -45,8 +43,7 @@ android {
       libs.versions.android.targetSdk
         .get()
         .toInt()
-    // Al CI de distribució és el número d'execució del workflow, perquè cada pujada sigui més nova que l'anterior
-    versionCode = secret("CALIU_VERSION_CODE").toIntOrNull() ?: 1
+    versionCode = 1
     versionName = "0.1.0"
   }
 
@@ -58,14 +55,6 @@ android {
       storePassword = "android"
       keyAlias = "androiddebugkey"
       keyPassword = "android"
-    }
-    if (releaseKeystore != null) {
-      create("release") {
-        storeFile = releaseKeystore
-        storePassword = secret("CALIU_RELEASE_STORE_PASSWORD")
-        keyAlias = secret("CALIU_RELEASE_KEY_ALIAS")
-        keyPassword = secret("CALIU_RELEASE_KEY_PASSWORD")
-      }
     }
   }
 
@@ -86,7 +75,6 @@ android {
     }
     release {
       // La release sempre parla amb Tuya i mai porta credencials al BuildConfig
-      if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
       buildConfigField("boolean", "REAL_THERMOSTAT", "true")
       buildConfigField("String", "TUYA_ACCESS_ID", "\"\"")
       buildConfigField("String", "TUYA_ACCESS_SECRET", "\"\"")

@@ -15,13 +15,13 @@ Està dins l'abast:
 - La pantalla principal, amb tots els estats de les captures `01`–`11`.
 - La pantalla de configuració (captures `12`–`14`).
 - Dos widgets Glance (2×1 i 4×2) i una rajola de configuració ràpida (captura `15`).
-- La distribució per Firebase App Distribution, que es farà en una fase posterior.
+- La distribució com a APK de debug des del CI de GitHub (artifact `caliu-debug`). No hi ha release ni botiga.
 
 Queda fora de l'abast:
 
 - Editar el programa setmanal. Només es mostra el programa d'avui i se'n pot canviar el tram actiu, cosa que crea un canvi
   temporal.
-- Més d'un dispositiu, Google Play i Wear OS.
+- Més d'un dispositiu, Google Play, Firebase App Distribution i Wear OS.
 
 ## Decisions
 
@@ -37,7 +37,7 @@ Queda fora de l'abast:
 | Tipografia | Roboto Flex (la mateixa `.ttf` de Converses) i Nunito, totes dues a `res/font` amb llicència OFL. No es fan servir Downloadable Fonts. |
 | Icones | Material Symbols Rounded, importades com a vector drawables a `:designsystem` (unes 15). `material-icons-extended` són Material Icons, no Symbols. |
 | Tests | Tests JVM per a la signatura, el decodificador del programa, la fórmula de la pausa, el càlcul del mood i els ViewModels. Tests de captures de Compose per a cada captura del handoff, en clar i fosc. |
-| Termòstat simulat | `FakeThermostatRepository` (a `data/fake`) implementa `ThermostatRepository` en memòria, sense xarxa: segueix el programa, crea canvis temporals que caduquen al tram següent, apaga, i la temperatura s'acosta a la consigna a cada lectura. Amb `failure` es força qualsevol error. La debug el fa servir per defecte, perquè les proves no toquin mai la calefacció: el repositori real (`TuyaThermostatRepository`) només s'hi connecta amb `caliu.realThermostat=true` a `local.properties`. La release sempre fa servir el real. |
+| Termòstat simulat | `FakeThermostatRepository` (a `data/fake`) implementa `ThermostatRepository` en memòria, sense xarxa: segueix el programa, crea canvis temporals que caduquen al tram següent, apaga, i la temperatura s'acosta a la consigna a cada lectura. Amb `failure` es força qualsevol error. La debug el fa servir per defecte, perquè les proves no toquin mai la calefacció: el repositori real (`TuyaThermostatRepository`) només s'hi connecta amb `caliu.realThermostat=true` a `local.properties` o `CALIU_REAL_THERMOSTAT=true` a l'entorn, que és el que fa el CI de `main` (el seu APK és el que es fa servir a casa). La release sempre fa servir el real. |
 | Escriptura al dispositiu | Escriure afecta la calefacció de casa. Les proves contra el dispositiu real es demanen abans a l'usuari, com diu el `CLAUDE.md` de l'arrel. |
 
 ### API de Material 3 Expressive comprovades a la 1.5.0-beta01

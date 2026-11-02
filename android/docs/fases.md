@@ -209,33 +209,20 @@ text pla al DataStore.
 
 **Validació:** captura `15`, i alternar la pausa des de la rajola (amb permís).
 
-## Fase 8 · Distribució (Firebase App Distribution)
+## Fase 8 · Distribució (CI de GitHub)
 
-- ☑ Keystore de release fora del repo, amb els secrets al CI. `app/build.gradle.kts` signa el release si hi ha
-  `CALIU_RELEASE_KEYSTORE` (camí) i les contrasenyes (`CALIU_RELEASE_STORE_PASSWORD`, `CALIU_RELEASE_KEY_ALIAS`,
-  `CALIU_RELEASE_KEY_PASSWORD`), de l'entorn o de `local.properties`; si no, el construeix sense signar. El
-  `versionCode` surt de `CALIU_VERSION_CODE` (al CI, el número d'execució).
-- ☑ Un workflow manual (`android-distribute.yml`) que passa ktlint i els tests, construeix el release signat i el puja a
-  App Distribution amb `firebase-tools` (versió fixada) i un compte de servei.
-- ☑ `testDebugUnitTest` i `validateDebugScreenshotTest` als workflows de PR i de `main`, amb els informes com a artifact si
-  fallen.
+Decisió de l'usuari (2026-11-02): no hi ha release, ni botiga, ni Firebase. Caliu es distribueix com l'APK de debug
+que construeix el CI.
 
-**Per fer-ho funcionar (ho ha de fer l'usuari, perquè són credencials):**
+- ☑ `android-build-apk.yml`, a cada push a `main`: ktlint, tests JVM, validació de captures i `assembleDebug` amb les
+  credencials de Tuya dels secrets del repo (`TUYA_ACCESS_ID`, `TUYA_ACCESS_SECRET`, `TUYA_REGION`, `TUYA_DEVICE_ID`, ja
+  posats). L'APK es puja com a artifact `caliu-debug`.
+- ☑ Com que la keystore de debug és compartida (`certs/debug.keystore`), cada APK nou s'instal·la a sobre de l'anterior.
+- ☑ Els tests i les captures també corren a les PR (`android-pr-build.yml`).
 
-1. Crear la keystore de release fora del repo, per exemple
-   `keytool -genkeypair -keystore caliu-release.jks -alias caliu -keyalg RSA -keysize 4096 -validity 10000`, i
-   guardar-la amb les contrasenyes en un lloc segur. Si es perd, no es poden instal·lar actualitzacions a sobre.
-2. Crear el projecte de Firebase i afegir-hi l'app Android `com.alorma.caliu`. No cal `google-services.json`, perquè
-   l'app no fa servir cap SDK de Firebase.
-3. Crear un compte de servei amb el rol «Firebase App Distribution Admin» i baixar-ne el JSON.
-4. Afegir els secrets al repo: `CALIU_RELEASE_KEYSTORE_BASE64` (`base64 -i caliu-release.jks`),
-   `CALIU_RELEASE_STORE_PASSWORD`, `CALIU_RELEASE_KEY_ALIAS`, `CALIU_RELEASE_KEY_PASSWORD`, `FIREBASE_APP_ID` i
-   `FIREBASE_SERVICE_ACCOUNT`. Per a la debug, també `TUYA_ACCESS_ID`, `TUYA_ACCESS_SECRET`, `TUYA_REGION` i
-   `TUYA_DEVICE_ID`.
-5. Crear el grup de testers `testers` a App Distribution (o passar-ne un altre en llançar el workflow).
-
-**Validació:** el release se signa amb una keystore de prova (comprovat amb `apksigner`, `versionCode` 42). La pujada a
-App Distribution no es pot provar fins que hi hagi els secrets.
+- ☑ L'APK del CI parla amb el termòstat **real** (`CALIU_REAL_THERMOSTAT=true` al workflow). La debug local continua
+  fent servir el simulat si no es posa `caliu.realThermostat=true` a `local.properties`. Les PR construeixen sense
+  secrets ni termòstat real.
 
 ## Pendent: refresc més freqüent
 
