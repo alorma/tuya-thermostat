@@ -32,7 +32,7 @@ Queda fora de l'abast:
 |---|---|
 | Paquet | `com.alorma.caliu`. La debug és `com.alorma.caliu.dev` i el paquet `cat.termostat` del handoff s'adapta a aquest. |
 | Mòduls | `:app` (pantalles, ViewModels, dades, widgets, rajola) i `:designsystem` (tema Caliu, tipografia, icones i components visuals). Tots els `@OptIn(ExperimentalMaterial3ExpressiveApi::class)` van a `:designsystem`. |
-| UI | Compose amb Material 3 Expressive (`material3` 1.5.0-beta01). Totes les API que demana `disseny/docs/02` hi existeixen (vegeu la llista d'API comprovades més avall). |
+| UI | Compose amb Material 3 Expressive (`material3` 1.5.0, del BOM `2026.11.01`). Totes les API que demana `disseny/docs/02` hi existeixen (vegeu la llista d'API comprovades més avall). |
 | Arquitectura | Una sola Activity, MVVM amb `StateFlow`, Navigation 3 (principal i configuració), Koin, i cada pantalla amb una versió sense estat (`…Content`) per a les previews i els tests de captures. És el mateix que fan Converses i Caducity. |
 | Xarxa | Retrofit 3 sobre OkHttp, amb el convertidor de kotlinx.serialization (`JsonObject`, sense models). La signatura HMAC la fa `TuyaSigningInterceptor`, que rep les credencials i el token de cada petició com a `@Tag` de Retrofit i hi posa el host de la regió. El token es demana i es renova a `TuyaApi`. (Decisió de l'usuari del 2026-11-02: al principi era OkHttp sense Retrofit.) |
 | Persistència | DataStore. Les credencials es desen com un sol valor xifrat amb una clau AES/GCM d'Android Keystore (`EncryptedSharedPreferences` està obsolet), i el fitxer s'exclou de les còpies de seguretat perquè la clau no es pot restaurar. |
@@ -73,6 +73,7 @@ macOS (`macOS/Sources/TuyaClient.swift`) i pel `CLAUDE.md` de l'arrel, i **mana 
 | Targeta hero de 134 dp | Les mètriques de Nunito fan la línia de 100 sp més alta | La targeta té l'alçada fixa i la xifra hi queda centrada. |
 | Bateria horitzontal a les captures | Les `battery_*` de Material Symbols són verticals | Es fan servir les verticals que es van importar a la fase 0. |
 | `moodColorScheme` no fixa `surfaceVariant`, `surfaceTint` ni `inverseSurface` | Es quedarien amb el lila de M3 | Es deriven del mood: `cardHigh`, `primary` i `onSurface`/`card` (Snackbar). |
+| Temperatura de cada tram del programa amb −/+ | Amb 6 trams per dia, el −/+ obliga a tocar molts cops i omple la fila | Decisió de l'usuari (2026-11-27): la temperatura és una píndola tonal com la de l'hora i obre un full amb el `ScrollField` de `material3` 1.5.0 (`SetpointWheel`), de min a max a passos de 0,5 °C. La roda dona la volta (després de 35,0 torna 5,0), que és com funciona `ScrollField`, i per això la descripció d'accessibilitat diu el rang. |
 | Xifres dels widgets en Nunito | Glance (RemoteViews) només pot fer servir les fonts del sistema | Els widgets fan servir sans-serif negreta. |
 
 ## Decisions de l'usuari (2026-11-01)

@@ -86,8 +86,9 @@
     <string name="schedule_timeline_a11y">Programa del %1$s, de 00:00 a 24:00</string>
     <string name="schedule_start_time">Hora d\'inici</string>
     <string name="schedule_start_time_a11y">Hora d\'inici %1$s. Canvia-la</string>
-    <string name="schedule_temp_decrease">Baixa la temperatura</string>
-    <string name="schedule_temp_increase">Puja la temperatura</string>
+    <string name="schedule_temperature">Temperatura</string>
+    <string name="schedule_temperature_a11y">Temperatura %1$s. Canvia-la</string>
+    <string name="schedule_temperature_wheel_a11y">Tria la temperatura, de %1$s a %2$s</string>
     <string name="schedule_copy">Copia a altres dies</string>
     <string name="schedule_copy_title">Copia el %1$s a</string>
     <string name="schedule_copy_weekdays">Feiners</string>

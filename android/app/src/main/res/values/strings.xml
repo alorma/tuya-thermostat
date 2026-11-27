@@ -22,6 +22,7 @@
 
     <!-- Values -->
     <string name="temp_value">%1$s °C</string>
+    <string name="temp_unit" translatable="false">°C</string>
     <string name="temp_preset">%1$d°</string>
     <string name="temp_unknown" translatable="false">—</string>
     <string name="schedule_range" translatable="false">%1$s – %2$s</string>
@@ -95,8 +96,9 @@
     <string name="schedule_timeline_a11y">%1$s schedule, from 00:00 to 24:00</string>
     <string name="schedule_start_time">Start time</string>
     <string name="schedule_start_time_a11y">Start time %1$s. Change it</string>
-    <string name="schedule_temp_decrease">Lower the temperature</string>
-    <string name="schedule_temp_increase">Raise the temperature</string>
+    <string name="schedule_temperature">Temperature</string>
+    <string name="schedule_temperature_a11y">Temperature %1$s. Change it</string>
+    <string name="schedule_temperature_wheel_a11y">Pick the temperature, from %1$s to %2$s</string>
     <string name="schedule_copy">Copy to other days</string>
     <string name="schedule_copy_title">Copy %1$s to</string>
     <string name="schedule_copy_weekdays">Weekdays</string>

@@ -95,6 +95,34 @@ fun ScheduleCopyPreview() {
   }
 }
 
+/** El full de temperatura, pintat a mà com el de copiar. No té captura al handoff. */
+@OptIn(ExperimentalMaterial3Api::class)
+@HomePreviews
+@Composable
+fun ScheduleTemperaturePreview() {
+  Box(Modifier.fillMaxSize()) {
+    ScheduleContent(SchedulePreviewData.Edit, ScheduleActions())
+    CaliuTheme(mood = Mood.OFF) {
+      Scrim()
+      Surface(
+        modifier = Modifier.align(Alignment.BottomCenter),
+        shape = BottomSheetDefaults.ExpandedShape,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+      ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+          BottomSheetDefaults.DragHandle()
+          TemperatureSheetContent(
+            options = SchedulePreviewData.Edit.setpointOptions,
+            initial = 21.0,
+            onCancel = {},
+            onConfirm = {},
+          )
+        }
+      }
+    }
+  }
+}
+
 /** Captura `19-programa-time`. Com el full, el diàleg es pinta a mà amb el mateix `TimePicker`. */
 @OptIn(ExperimentalMaterial3Api::class)
 @HomePreviews

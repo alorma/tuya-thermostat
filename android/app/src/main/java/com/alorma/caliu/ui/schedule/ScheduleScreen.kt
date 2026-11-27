@@ -27,6 +27,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TimePickerDialog
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberScrollFieldState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -60,6 +61,7 @@ import com.alorma.caliu.designsystem.components.DayTimeline
 import com.alorma.caliu.designsystem.components.ProgramCard
 import com.alorma.caliu.designsystem.components.ProgramSlotRow
 import com.alorma.caliu.designsystem.components.Section
+import com.alorma.caliu.designsystem.components.SetpointWheel
 import com.alorma.caliu.designsystem.components.StatePanel
 import com.alorma.caliu.designsystem.components.StatePanelButton
 import com.alorma.caliu.designsystem.components.StatePanelButtonKind
@@ -82,7 +84,7 @@ data class ScheduleActions(
   val onSave: () -> Unit = {},
   val onRetry: () -> Unit = {},
   val onSelectDay: (DayOfWeek) -> Unit = {},
-  val onStep: (index: Int, steps: Int) -> Unit = { _, _ -> },
+  val onEditTemperature: (index: Int) -> Unit = {},
   val onEditTime: (index: Int) -> Unit = {},
   val onCopy: () -> Unit = {},
 )
@@ -100,6 +102,7 @@ fun ScheduleScreen(
   val resources = LocalResources.current
 
   var editingSlot by rememberSaveable { mutableStateOf<Int?>(null) }
+  var editingTemperature by rememberSaveable { mutableStateOf<Int?>(null) }
   var copying by rememberSaveable { mutableStateOf(false) }
   var confirmingDiscard by rememberSaveable { mutableStateOf(false) }
 
@@ -132,7 +135,7 @@ fun ScheduleScreen(
         onSave = viewModel::save,
         onRetry = viewModel::load,
         onSelectDay = viewModel::selectDay,
-        onStep = viewModel::stepTemperature,
+        onEditTemperature = { editingTemperature = it },
         onEditTime = { editingSlot = it },
         onCopy = { copying = true },
       ),
@@ -151,6 +154,17 @@ fun ScheduleScreen(
             editingSlot = null
           },
           onDismiss = { editingSlot = null },
+        )
+      }
+      editingTemperature?.takeIf { it in editing.entries.indices }?.let { index ->
+        TemperatureSheet(
+          options = editing.setpointOptions,
+          initial = editing.entries[index].setpoint,
+          onConfirm = {
+            viewModel.setTemperature(index, it)
+            editingTemperature = null
+          },
+          onDismiss = { editingTemperature = null },
         )
       }
       if (copying) {
@@ -293,18 +307,15 @@ private fun ColumnScope.Editor(
   ProgramCard(modifier = Modifier.semantics { contentDescription = slotsDescription }) {
     state.entries.forEachIndexed { index, entry ->
       val time = entry.start.toString()
+      val value = stringResource(R.string.temp_value, formatTemperature(entry.setpoint, locale))
       ProgramSlotRow(
         time = time,
         timeDescription = stringResource(R.string.schedule_start_time_a11y, time),
         onTimeClick = { actions.onEditTime(index) },
-        value = stringResource(R.string.temp_value, formatTemperature(entry.setpoint, locale)),
-        onDecrease = { actions.onStep(index, -1) },
-        onIncrease = { actions.onStep(index, 1) },
-        decreaseLabel = stringResource(R.string.schedule_temp_decrease),
-        increaseLabel = stringResource(R.string.schedule_temp_increase),
+        value = value,
+        valueDescription = stringResource(R.string.schedule_temperature_a11y, value),
+        onValueClick = { actions.onEditTemperature(index) },
         enabled = !state.saving,
-        canDecrease = state.canDecrease(index),
-        canIncrease = state.canIncrease(index),
       )
     }
   }
@@ -362,6 +373,91 @@ private fun StartTimeDialog(
     },
   ) {
     TimePicker(state = state)
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TemperatureSheet(
+  options: List<Double>,
+  initial: Double,
+  onConfirm: (Double) -> Unit,
+  onDismiss: () -> Unit,
+) {
+  val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+  val scope = rememberCoroutineScope()
+
+  fun close(then: () -> Unit) {
+    scope.launch { sheetState.hide() }.invokeOnCompletion { then() }
+  }
+
+  ModalBottomSheet(
+    onDismissRequest = onDismiss,
+    sheetState = sheetState,
+    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+  ) {
+    TemperatureSheetContent(
+      options = options,
+      initial = initial,
+      onCancel = { close(onDismiss) },
+      onConfirm = { chosen -> close { onConfirm(chosen) } },
+    )
+  }
+}
+
+/**
+ * El contingut del full de temperatura: la roda amb totes les temperatures permeses i D'acord, que agafa la que quedarà
+ * triada encara que la roda no s'hagi aturat del tot. A part perquè les previews el puguin pintar sense el full.
+ */
+@Composable
+internal fun TemperatureSheetContent(
+  options: List<Double>,
+  initial: Double,
+  onCancel: () -> Unit,
+  onConfirm: (Double) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val locale = LocalConfiguration.current.locales[0]
+  val labels = remember(options, locale) { options.map { formatTemperature(it, locale) } }
+  val initialIndex = remember(options, initial) { options.indexOfFirst { it >= initial }.coerceAtLeast(0) }
+  val wheel = rememberScrollFieldState(itemCount = options.size, index = initialIndex)
+  Column(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .padding(horizontal = CaliuSpacing.l)
+        .padding(bottom = CaliuSpacing.l),
+    verticalArrangement = Arrangement.spacedBy(CaliuSpacing.l),
+  ) {
+    Text(
+      text = stringResource(R.string.schedule_temperature),
+      style = CaliuType.stateTitle,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+    SetpointWheel(
+      state = wheel,
+      labels = labels,
+      unit = stringResource(R.string.temp_unit),
+      description =
+        stringResource(
+          R.string.schedule_temperature_wheel_a11y,
+          stringResource(R.string.temp_value, labels.first()),
+          stringResource(R.string.temp_value, labels.last()),
+        ),
+      modifier = Modifier.align(Alignment.CenterHorizontally),
+    )
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(CaliuSpacing.s, Alignment.End),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      TextButton(onClick = onCancel) {
+        Text(stringResource(R.string.action_cancel), style = CaliuType.button)
+      }
+      Button(onClick = { onConfirm(options[wheel.targetOption]) }) {
+        Text(stringResource(R.string.action_ok), style = CaliuType.button)
+      }
+    }
   }
 }
 

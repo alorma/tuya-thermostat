@@ -6,6 +6,7 @@ import com.alorma.caliu.ui.schedule.ScheduleCopiedPreview
 import com.alorma.caliu.ui.schedule.ScheduleCopyPreview
 import com.alorma.caliu.ui.schedule.ScheduleEditPreview
 import com.alorma.caliu.ui.schedule.ScheduleErrorPreview
+import com.alorma.caliu.ui.schedule.ScheduleTemperaturePreview
 import com.alorma.caliu.ui.schedule.ScheduleTimePreview
 import com.android.tools.screenshot.PreviewTest
 
@@ -33,6 +34,12 @@ class ScheduleScreenshotTests {
   @PreviewTest
   @Composable
   fun c19ScheduleCopied() = ScheduleCopiedPreview()
+
+  // No té captura al handoff
+  @HomePreviews
+  @PreviewTest
+  @Composable
+  fun c19bScheduleTemperature() = ScheduleTemperaturePreview()
 
   // No té captura al handoff
   @HomePreviews

@@ -23,10 +23,14 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollField
+import androidx.compose.material3.ScrollFieldDefaults
+import androidx.compose.material3.ScrollFieldState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.ToggleButtonShapes
+import androidx.compose.material3.rememberScrollFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
@@ -228,72 +232,112 @@ fun ProgramCard(
   }
 }
 
-/** Un tram del programa: l'hora d'inici en una píndola tonal (tocar-la la canvia) i la temperatura amb −/+. */
+/**
+ * Un tram del programa: l'hora d'inici i la temperatura, cadascuna en una píndola tonal. Tocar-ne una obre el seu
+ * selector (el de l'hora, un diàleg; el de la temperatura, un full amb [SetpointWheel]).
+ */
 @Composable
 fun ProgramSlotRow(
   time: String,
   timeDescription: String,
   onTimeClick: () -> Unit,
   value: String,
-  onDecrease: () -> Unit,
-  onIncrease: () -> Unit,
-  decreaseLabel: String,
-  increaseLabel: String,
+  valueDescription: String,
+  onValueClick: () -> Unit,
   modifier: Modifier = Modifier,
   enabled: Boolean = true,
-  canDecrease: Boolean = true,
-  canIncrease: Boolean = true,
 ) {
-  val container = MaterialTheme.colorScheme.surfaceContainerHigh
   Row(
     modifier = modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    FilledTonalButton(
+    SlotPill(
+      text = time,
+      description = timeDescription,
       onClick = onTimeClick,
       enabled = enabled,
-      colors =
-        ButtonDefaults.filledTonalButtonColors(
-          containerColor = container,
-          contentColor = MaterialTheme.colorScheme.onSurface,
-        ),
-      contentPadding = PaddingValues(horizontal = 12.dp),
-      modifier =
-        Modifier
-          .width(88.dp)
-          .height(SlotControlSize)
-          .semantics { contentDescription = timeDescription },
-    ) {
-      Text(time, style = CaliuType.tempRow)
-    }
+      modifier = Modifier.width(88.dp),
+    )
     Box(Modifier.weight(1f))
-    StepButton(
-      icon = R.drawable.ic_remove,
-      contentDescription = decreaseLabel,
-      onClick = onDecrease,
-      enabled = enabled && canDecrease,
-      size = SlotControlSize,
-      iconSize = 24.dp,
-      shape = CaliuShapes.chip,
-      container = container,
-    )
-    Text(
+    SlotPill(
       text = value,
-      style = CaliuType.tempRow,
-      modifier = Modifier.padding(horizontal = 10.dp),
-    )
-    StepButton(
-      icon = R.drawable.ic_add,
-      contentDescription = increaseLabel,
-      onClick = onIncrease,
-      enabled = enabled && canIncrease,
-      size = SlotControlSize,
-      iconSize = 24.dp,
-      shape = CaliuShapes.chip,
-      container = container,
+      description = valueDescription,
+      onClick = onValueClick,
+      enabled = enabled,
+      modifier = Modifier.width(112.dp),
     )
   }
 }
+
+@Composable
+private fun SlotPill(
+  text: String,
+  description: String,
+  onClick: () -> Unit,
+  enabled: Boolean,
+  modifier: Modifier = Modifier,
+) {
+  FilledTonalButton(
+    onClick = onClick,
+    enabled = enabled,
+    colors =
+      ButtonDefaults.filledTonalButtonColors(
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+      ),
+    contentPadding = PaddingValues(horizontal = 12.dp),
+    modifier =
+      modifier
+        .height(SlotControlSize)
+        .semantics { contentDescription = description },
+  ) {
+    Text(text, style = CaliuType.tempRow)
+  }
+}
+
+/**
+ * Roda de temperatures amb el `ScrollField` de Material 3: [labels] són les opcions ja formatades (sense la unitat, que
+ * va al costat i no es mou) i [state] diu quina és la triada. La roda dona la volta: després de l'última torna la
+ * primera, i per això [description] ha de dir el rang.
+ */
+@Composable
+fun SetpointWheel(
+  state: ScrollFieldState,
+  labels: List<String>,
+  unit: String,
+  description: String,
+  modifier: Modifier = Modifier,
+) {
+  val colors =
+    ScrollFieldDefaults.colors(
+      containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+      contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+      selectedContentColor = MaterialTheme.colorScheme.onSurface,
+    )
+  Row(
+    modifier = modifier,
+    verticalAlignment = Alignment.CenterVertically,
+    horizontalArrangement = Arrangement.spacedBy(CaliuSpacing.s),
+  ) {
+    ScrollField(
+      state = state,
+      contentDescription = description,
+      colors = colors,
+      fieldAccessibilityDescription = { "${labels[it]} $unit" },
+      modifier = Modifier.size(width = WheelWidth, height = WheelHeight),
+    ) { index, selected, _ ->
+      Text(
+        text = labels[index],
+        style = if (selected) CaliuType.tempValue else CaliuType.tempRow,
+        color = if (selected) colors.selectedContentColor else colors.contentColor,
+      )
+    }
+    Text(unit, style = CaliuType.tempRow, color = MaterialTheme.colorScheme.onSurfaceVariant)
+  }
+}
+
+private val WheelWidth = 160.dp
+private val WheelHeight = 168.dp
 
 /** «Copia a altres dies»: botó tonal ample amb la icona de copiar. */
 @Composable
@@ -393,10 +437,16 @@ private fun WeekProgramPreview() {
         description = "",
       )
       ProgramCard {
-        ProgramSlotRow("06:30", "", {}, "21,0 °C", {}, {}, "Baixa", "Puja")
-        ProgramSlotRow("22:30", "", {}, "17,0 °C", {}, {}, "Baixa", "Puja")
+        ProgramSlotRow("06:30", "", {}, "21,0 °C", "", {})
+        ProgramSlotRow("22:30", "", {}, "17,0 °C", "", {})
       }
       CopyDaysButton("Copia a altres dies", {})
+      SetpointWheel(
+        state = rememberScrollFieldState(itemCount = 5, index = 2),
+        labels = listOf("20,0", "20,5", "21,0", "21,5", "22,0"),
+        unit = "°C",
+        description = "",
+      )
       Row(horizontalArrangement = Arrangement.spacedBy(CaliuSpacing.s)) {
         CopyDayToggle("Dl", "", checked = false, onCheckedChange = {}, enabled = false)
         CopyDayToggle("Dt", "", checked = true, onCheckedChange = {})

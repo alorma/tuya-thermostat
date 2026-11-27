@@ -12,6 +12,7 @@ import com.alorma.caliu.domain.WeekProgram
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
@@ -62,9 +63,12 @@ sealed interface ScheduleUiState {
       return first..last
     }
 
-    fun canDecrease(index: Int): Boolean = entries[index].setpoint > minSetpoint
-
-    fun canIncrease(index: Int): Boolean = entries[index].setpoint < maxSetpoint
+    /** Les temperatures que es poden triar per a un tram, de [minSetpoint] a [maxSetpoint] a passos de 0,5 °C. */
+    val setpointOptions: List<Double>
+      get() {
+        val steps = ((maxSetpoint - minSetpoint) / ThermostatState.SETPOINT_STEP).roundToInt()
+        return (0..steps).map { minSetpoint + it * ThermostatState.SETPOINT_STEP }
+      }
   }
 }
 
@@ -146,14 +150,14 @@ class ScheduleViewModel(
     _uiState.update { (it as? ScheduleUiState.Editing)?.copy(selectedDay = day) ?: it }
   }
 
-  /** −/+ de la temperatura del tram [index] del dia seleccionat, a passos de 0,5 °C dins `[min, max]`. */
-  fun stepTemperature(
+  /** Canvia la temperatura del tram [index] del dia seleccionat, arrodonida a 0,5 °C i dins `[min, max]`. */
+  fun setTemperature(
     index: Int,
-    steps: Int,
+    setpoint: Double,
   ) = edit {
-    val entry = entries[index]
-    val setpoint = (entry.setpoint + steps * ThermostatState.SETPOINT_STEP).coerceIn(minSetpoint, maxSetpoint)
-    withEntries(entries.toMutableList().apply { set(index, entry.copy(setpoint = setpoint)) })
+    val step = ThermostatState.SETPOINT_STEP
+    val value = ((setpoint / step).roundToInt() * step).coerceIn(minSetpoint, maxSetpoint)
+    withEntries(entries.toMutableList().apply { set(index, get(index).copy(setpoint = value)) })
   }
 
   /** Canvia l'hora d'inici del tram [index]. Fora de l'interval que permeten els trams veïns no fa res. */

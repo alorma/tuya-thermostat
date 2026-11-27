@@ -62,27 +62,37 @@ class ScheduleViewModelTest {
     }
 
   @Test
-  fun `−+ canvia la temperatura a passos de 0,5 i marca el dia com a modificat`() =
+  fun `canviar la temperatura marca el dia com a modificat`() =
     test {
-      viewModel.stepTemperature(index = 1, steps = 1)
+      viewModel.setTemperature(index = 1, setpoint = 21.5)
       assertEquals(21.5, editing.entries[1].setpoint, 0.0)
       assertEquals(setOf(DayOfWeek.MONDAY), editing.modifiedDays)
 
       // Tornar al valor de partida treu la marca
-      viewModel.stepTemperature(index = 1, steps = -1)
+      viewModel.setTemperature(index = 1, setpoint = 21.0)
       assertFalse(editing.hasChanges)
     }
 
   @Test
-  fun `la temperatura no surt de min i max`() =
+  fun `la temperatura s'arrodoneix a 0,5 i no surt de min i max`() =
     test {
       // Els límits per defecte del simulat són 5 i 35
-      repeat(100) { viewModel.stepTemperature(index = 0, steps = 1) }
+      viewModel.setTemperature(index = 0, setpoint = 19.3)
+      assertEquals(19.5, editing.entries[0].setpoint, 0.0)
+      viewModel.setTemperature(index = 0, setpoint = 99.0)
       assertEquals(35.0, editing.entries[0].setpoint, 0.0)
-      assertFalse(editing.canIncrease(0))
-      repeat(100) { viewModel.stepTemperature(index = 0, steps = -1) }
+      viewModel.setTemperature(index = 0, setpoint = -4.0)
       assertEquals(5.0, editing.entries[0].setpoint, 0.0)
-      assertFalse(editing.canDecrease(0))
+    }
+
+  @Test
+  fun `les opcions de temperatura van de min a max a passos de 0,5`() =
+    test {
+      val options = editing.setpointOptions
+      assertEquals(5.0, options.first(), 0.0)
+      assertEquals(35.0, options.last(), 0.0)
+      assertEquals(61, options.size)
+      assertTrue(21.5 in options)
     }
 
   @Test
@@ -116,7 +126,7 @@ class ScheduleViewModelTest {
   @Test
   fun `copiar un dia el posa als dies triats i avisa de quants`() =
     test {
-      viewModel.stepTemperature(index = 1, steps = 1)
+      viewModel.setTemperature(index = 1, setpoint = 21.5)
       val events = events { viewModel.copyTo(setOf(DayOfWeek.TUESDAY, DayOfWeek.FRIDAY, DayOfWeek.MONDAY)) }
       assertEquals(listOf(ScheduleEvent.Copied(2)), events)
       assertEquals(editing.entries, editing.days[DayOfWeek.TUESDAY])
@@ -127,7 +137,7 @@ class ScheduleViewModelTest {
   @Test
   fun `desar envia només els dies modificats i torna enrere`() =
     test {
-      viewModel.stepTemperature(index = 1, steps = 1)
+      viewModel.setTemperature(index = 1, setpoint = 21.5)
       viewModel.copyTo(setOf(DayOfWeek.WEDNESDAY))
       val saved = mutableListOf<Unit>()
       val notified = launch { programChanges.saved.first().also { saved += it } }
@@ -147,7 +157,7 @@ class ScheduleViewModelTest {
   fun `si un dia falla, la resta es desa i el que falla queda marcat`() =
     test {
       fake.failingDays = setOf(DayOfWeek.THURSDAY)
-      viewModel.stepTemperature(index = 2, steps = -1)
+      viewModel.setTemperature(index = 2, setpoint = 18.5)
       viewModel.copyTo(setOf(DayOfWeek.THURSDAY, DayOfWeek.SATURDAY))
       val events = events { viewModel.save() }
       assertEquals(ScheduleEvent.SaveFailed(DayOfWeek.THURSDAY), events.last())
